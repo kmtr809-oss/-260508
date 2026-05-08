@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>承認システム｜上長専用</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+         background: #f0f4f8; color: #1a1a2e; font-size: 14px; }
+
+  .top-bar { background: #1e3a5f; color: #fff; padding: 12px 20px;
+             display: flex; align-items: center; justify-content: space-between; }
+  .top-logo { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .top-badge { background: #dc2626; color: #fff; font-size: 10px; font-weight: 700;
+               padding: 2px 7px; border-radius: 10px; }
+  .top-sub { font-size: 11px; color: #93c5fd; }
+
+  .container { max-width: 860px; margin: 0 auto; padding: 16px; }
+
+  .metrics { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 16px; }
+  .mc { background: #fff; border-radius: 10px; border: 1px solid #e2e8f0;
+        padding: 14px 16px; }
+  .mc-val { font-size: 28px; font-weight: 700; color: #1a1a2e; }
+  .mc-lbl { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+  .mc-warn { color: #d97706; }
+  .mc-ok   { color: #10b981; }
+  .mc-err  { color: #ef4444; }
+
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+          padding: 16px 18px; margin-bottom: 12px; }
+  .card-title { font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 12px; }
+
+  .filter-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+  .filter-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid #e2e8f0;
+                background: #fff; font-size: 12px; color: #64748b; cursor: pointer; transition: all .15s; }
+  .filter-btn.active { background: #1e3a5f; color: #fff; border-color: #1e3a5f; }
+
+  .tbl-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+  th { font-size: 11px; font-weight: 600; color: #94a3b8; padding: 8px;
+       border-bottom: 2px solid #f1f5f9; text-align: left; background: #f8fafc; }
+  td { padding: 10px 8px; border-bottom: 1px solid #f1f5f9; color: #374151;
+       vertical-align: middle; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  tr:hover td { background: #f8faff; }
+
+  .badge { display: inline-block; font-size: 11px; font-weight: 600;
+           padding: 3px 9px; border-radius: 20px; }
+  .b-pending  { background: #fef3c7; color: #92400e; }
+  .b-approved { background: #d1fae5; color: #065f46; }
+  .b-rejected { background: #fee2e2; color: #991b1b; }
+
+  .action-btn { padding: 5px 12px; border-radius: 6px; font-size: 12px;
+                font-weight: 500; cursor: pointer; border: none; }
+  .btn-review { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+
+  /* モーダル風詳細パネル */
+  .detail-panel { display: none; background: #fff; border: 1px solid #e2e8f0;
+                  border-radius: 14px; padding: 20px; margin-top: 12px; }
+  .detail-panel.open { display: block; }
+  .dp-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .dp-title { font-size: 15px; font-weight: 700; color: #1a1a2e; }
+  .dp-close { background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer; }
+
+  .dp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .dp-field { background: #f8fafc; border-radius: 8px; padding: 10px 12px; }
+  .dp-label { font-size: 10px; font-weight: 600; color: #94a3b8; text-transform: uppercase;
+              letter-spacing: .06em; margin-bottom: 3px; }
+  .dp-value { font-size: 13px; color: #1a1a2e; font-weight: 500; }
+
+  .dp-comment { margin-bottom: 14px; }
+  .dp-comment label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 5px; }
+  .dp-comment textarea { width: 100%; padding: 9px 11px; border: 1px solid #d1d5db;
+                         border-radius: 8px; font-size: 13px; resize: vertical; min-height: 72px; }
+  .dp-comment textarea:focus { outline: none; border-color: #2563eb;
+                               box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+
+  .dp-actions { display: flex; gap: 10px; }
+  .btn-approve { flex: 1; padding: 12px; background: #ecfdf5; color: #065f46;
+                 border: 1.5px solid #6ee7b7; border-radius: 9px; font-size: 14px;
+                 font-weight: 600; cursor: pointer; transition: background .15s; }
+  .btn-approve:hover { background: #d1fae5; }
+  .btn-reject  { flex: 1; padding: 12px; background: #fef2f2; color: #991b1b;
+                 border: 1.5px solid #fca5a5; border-radius: 9px; font-size: 14px;
+                 font-weight: 600; cursor: pointer; transition: background .15s; }
+  .btn-reject:hover { background: #fee2e2; }
+
+  .lw-notice { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px;
+               padding: 10px 14px; margin-bottom: 14px; font-size: 12px;
+               color: #1d4ed8; display: flex; align-items: center; gap: 8px; }
+
+  .reload-btn { padding: 7px 14px; background: #1e3a5f; color: #fff; border: none;
+                border-radius: 7px; font-size: 12px; cursor: pointer; }
+  .reload-btn:hover { background: #1d3461; }
+
+  .settings-box { background: #f8fafc; border-radius: 10px; padding: 14px;
+                  margin-top: 8px; font-size: 12px; }
+  .settings-box label { display: block; color: #6b7280; margin-bottom: 3px; font-weight: 500; }
+  .settings-box input { width: 100%; padding: 7px 10px; border: 1px solid #d1d5db;
+                        border-radius: 6px; font-size: 12px; margin-bottom: 8px; }
+  .save-btn { padding: 6px 16px; background: #2563eb; color: #fff; border: none;
+              border-radius: 6px; font-size: 12px; cursor: pointer; }
+
+  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(60px);
+           background: #1a1a2e; color: #fff; padding: 10px 20px;
+           border-radius: 20px; font-size: 13px; opacity: 0; transition: all .3s;
+           z-index: 9999; white-space: nowrap; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .empty { text-align: center; padding: 28px; color: #94a3b8; font-size: 13px; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+  .tab { padding: 9px 18px; border: 1px solid #e2e8f0; border-radius: 8px;
+         background: #fff; font-size: 13px; font-weight: 500; color: #64748b; cursor: pointer; }
+  .tab.active { background: #1e3a5f; color: #fff; border-color: #1e3a5f; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="top-logo">
+    🔐 承認システム
+    <span class="top-badge" id="pending-badge">0</span>
+  </div>
+  <div class="top-sub">上長専用 ／ 申請者には公開しないでください</div>
+</div>
+
+<div class="container">
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchPage('approval')" id="ptab-approval">✅ 承認処理</button>
+    <button class="tab" onclick="switchPage('all')" id="ptab-all">📋 全申請一覧</button>
+    <button class="tab" onclick="switchPage('settings')" id="ptab-settings">⚙ 設定</button>
+  </div>
+
+  <!-- ========== 承認処理ページ ========== -->
+  <div id="page-approval" class="page active">
+    <div class="metrics" id="metrics"></div>
+    <div class="lw-notice">
+      🔔 LINE WORKS 連携：承認・差し戻し時に申請者へ自動通知します
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="card-title" style="margin-bottom:0">承認待ち一覧</div>
+        <button class="reload-btn" onclick="loadData()">🔄 更新</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:92px">申請番号</th>
+              <th style="width:60px">種別</th>
+              <th style="width:90px">申請者</th>
+              <th>件名</th>
+              <th style="width:80px;text-align:right">金額</th>
+              <th style="width:78px">提出日時</th>
+              <th style="width:52px"></th>
+            </tr>
+          </thead>
+          <tbody id="pending-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 詳細・承認パネル -->
+    <div class="detail-panel" id="detail-panel">
+      <div class="dp-header">
+        <span class="dp-title" id="dp-title">申請詳細</span>
+        <button class="dp-close" onclick="closeDetail()">✕</button>
+      </div>
+      <div class="dp-grid" id="dp-fields"></div>
+      <div class="dp-comment">
+        <label>コメント（任意）─ 承認理由・差し戻し理由など</label>
+        <textarea id="dp-comment" placeholder="例：内容を確認しました。承認します。"></textarea>
+      </div>
+      <div class="dp-actions">
+        <button class="btn-approve" onclick="processApproval('承認済み')">✅ 承認する</button>
+        <button class="btn-reject"  onclick="processApproval('差し戻し')">↩ 差し戻す</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 全申請一覧ページ ========== -->
+  <div id="page-all" class="page">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="card-title" style="margin-bottom:0">全申請一覧</div>
+        <div class="filter-row" style="margin-bottom:0;">
+          <button class="filter-btn active" onclick="setFilter('all',this)">すべて</button>
+          <button class="filter-btn" onclick="setFilter('承認待ち',this)">承認待ち</button>
+          <button class="filter-btn" onclick="setFilter('承認済み',this)">承認済み</button>
+          <button class="filter-btn" onclick="setFilter('差し戻し',this)">差し戻し</button>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:92px">申請番号</th>
+              <th style="width:60px">種別</th>
+              <th style="width:80px">申請者</th>
+              <th>件名</th>
+              <th style="width:76px;text-align:right">金額</th>
+              <th style="width:68px">状態</th>
+              <th style="width:76px">処理日</th>
+            </tr>
+          </thead>
+          <tbody id="all-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 設定ページ ========== -->
+  <div id="page-settings" class="page">
+    <div class="card">
+      <div class="card-title">GAS・LINE WORKS 連携設定</div>
+      <div class="settings-box">
+        <label>GAS デプロイURL（申請者アプリと同じURLを設定）</label>
+        <input type="text" id="s-gas-url" placeholder="https://script.google.com/macros/s/.../exec">
+
+        <label>LINE WORKS Bot ID</label>
+        <input type="text" id="s-lw-bot" placeholder="YOUR_BOT_ID">
+
+        <label>通知チャンネルID（トークルームID）</label>
+        <input type="text" id="s-lw-ch" placeholder="YOUR_CHANNEL_ID">
+
+        <button class="save-btn" onclick="saveSettings()">💾 設定を保存</button>
+      </div>
+
+      <div style="margin-top:14px;font-size:12px;color:#94a3b8;line-height:1.8;">
+        <strong style="color:#475569;">設定手順</strong><br>
+        1. GASコード（gas_code.js）をGoogle Apps Scriptに貼り付ける<br>
+        2. 「デプロイ」→「新しいデプロイ」→ 種類：ウェブアプリ を選択<br>
+        3. アクセス権限を「全員」に設定してデプロイ<br>
+        4. 発行されたURLを申請者アプリ・承認アプリ両方に設定<br>
+        5. LINE WORKS管理画面でBotを作成しBot IDとチャンネルIDを取得<br>
+        6. GASコード内のCONFIG値も同様に更新する
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<div id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────
+//  状態管理
+// ─────────────────────────────────────────────
+var GAS_URL  = localStorage.getItem('approver_gasUrl') || '';
+var allData  = [];       // GASから取得した全申請データ
+var filter   = 'all';
+var openId   = null;
+
+// 起動時の設定読み込み
+document.getElementById('s-gas-url').value  = GAS_URL;
+document.getElementById('s-lw-bot').value   = localStorage.getItem('approver_lwBot') || '';
+document.getElementById('s-lw-ch').value    = localStorage.getItem('approver_lwCh')  || '';
+
+// ─────────────────────────────────────────────
+//  ユーティリティ
+// ─────────────────────────────────────────────
+function showToast(msg, duration) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, duration || 3000);
+}
+function nowStr() {
+  var d = new Date();
+  return d.toLocaleDateString('ja-JP') + ' ' +
+         d.toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' });
+}
+function badgeHtml(s) {
+  var cls = s==='承認待ち'?'b-pending':s==='承認済み'?'b-approved':'b-rejected';
+  return '<span class="badge '+cls+'">'+s+'</span>';
+}
+
+// ─────────────────────────────────────────────
+//  ページ切り替え
+// ─────────────────────────────────────────────
+function switchPage(p) {
+  ['approval','all','settings'].forEach(function(x) {
+    document.getElementById('ptab-'+x).classList.toggle('active', x===p);
+    document.getElementById('page-'+x).classList.toggle('active', x===p);
+  });
+  if (p === 'all') renderAll();
+}
+
+// ─────────────────────────────────────────────
+//  データ取得（GAS APIから一覧を取得）
+// ─────────────────────────────────────────────
+function loadData() {
+  if (!GAS_URL) {
+    // GAS未設定時はデモデータを表示
+    allData = getDemoData();
+    renderAll(); renderPending(); renderMetrics();
+    showToast('ℹ GAS未設定のためデモデータを表示中');
+    return;
+  }
+  showToast('🔄 申請データを取得中...');
+  var cbName = 'cbLoad_' + Date.now();
+  var script = document.createElement('script');
+  script.src = GAS_URL + '?action=getList&callback=' + cbName;
+  window[cbName] = function(result) {
+    delete window[cbName];
+    document.body.removeChild(script);
+    if (result.success) {
+      allData = result.list;
+      renderAll(); renderPending(); renderMetrics();
+      showToast('✅ ' + allData.length + '件のデータを取得しました');
+    } else {
+      showToast('❌ ' + result.message, 4000);
+    }
+  };
+  script.onerror = function() {
+    delete window[cbName];
+    document.body.removeChild(script);
+    showToast('❌ 通信エラー。GAS URLを確認してください', 4000);
+  };
+  document.body.appendChild(script);
+}
+
+// ─────────────────────────────────────────────
+//  メトリクス表示
+// ─────────────────────────────────────────────
+function renderMetrics() {
+  var pending  = allData.filter(function(r){return r.status==='承認待ち';}).length;
+  var approved = allData.filter(function(r){return r.status==='承認済み';}).length;
+  var rejected = allData.filter(function(r){return r.status==='差し戻し';}).length;
+  var total    = allData.length;
+
+  document.getElementById('pending-badge').textContent = pending;
+  document.getElementById('metrics').innerHTML =
+    '<div class="mc"><div class="mc-val mc-warn">'+pending+'</div><div class="mc-lbl">承認待ち（未処理）</div></div>' +
+    '<div class="mc"><div class="mc-val mc-ok">'+approved+'</div><div class="mc-lbl">承認済み</div></div>' +
+    '<div class="mc"><div class="mc-val mc-err">'+rejected+'</div><div class="mc-lbl">差し戻し</div></div>' +
+    '<div class="mc"><div class="mc-val">'+total+'</div><div class="mc-lbl">総件数</div></div>';
+}
+
+// ─────────────────────────────────────────────
+//  承認待ち一覧
+// ─────────────────────────────────────────────
+function renderPending() {
+  var list = allData.filter(function(r){ return r.status === '承認待ち'; });
+  var tb   = document.getElementById('pending-tbody');
+  if (list.length === 0) {
+    tb.innerHTML = '<tr><td colspan="7" class="empty">承認待ちの申請はありません</td></tr>';
+    return;
+  }
+  tb.innerHTML = list.map(function(r) {
+    return '<tr>' +
+      '<td style="font-family:monospace;font-size:11px;">' + r.id + '</td>' +
+      '<td>' + r.type + '</td>' +
+      '<td>' + r.name + '</td>' +
+      '<td>' + r.subject + '</td>' +
+      '<td style="text-align:right;">¥' + Number(r.amount).toLocaleString() + '</td>' +
+      '<td style="font-size:11px;">' + (r.submittedAt||'').split(' ')[0] + '</td>' +
+      '<td><button class="action-btn btn-review" onclick="openDetail(\''+r.id+'\')">審査</button></td>' +
+      '</tr>';
+  }).join('');
+}
+
+// ─────────────────────────────────────────────
+//  全申請一覧
+// ─────────────────────────────────────────────
+function setFilter(f, btn) {
+  filter = f;
+  document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  renderAll();
+}
+function renderAll() {
+  var list = filter === 'all' ? allData : allData.filter(function(r){ return r.status===filter; });
+  var tb   = document.getElementById('all-tbody');
+  if (list.length === 0) {
+    tb.innerHTML = '<tr><td colspan="7" class="empty">該当する申請はありません</td></tr>';
+    return;
+  }
+  tb.innerHTML = list.map(function(r) {
+    return '<tr>' +
+      '<td style="font-family:monospace;font-size:11px;">' + r.id + '</td>' +
+      '<td>' + r.type + '</td>' +
+      '<td>' + r.name + '</td>' +
+      '<td>' + r.subject + '</td>' +
+      '<td style="text-align:right;">¥' + Number(r.amount).toLocaleString() + '</td>' +
+      '<td>' + badgeHtml(r.status) + '</td>' +
+      '<td style="font-size:11px;">' + (r.approvedAt||'—').split(' ')[0] + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+// ─────────────────────────────────────────────
+//  申請詳細・承認パネル
+// ─────────────────────────────────────────────
+function openDetail(id) {
+  var r = allData.find(function(x){ return x.id === id; });
+  if (!r) return;
+  openId = id;
+  document.getElementById('dp-title').textContent = r.id + '　' + r.subject;
+  var fields = [
+    ['申請者', r.name + '（' + r.dept + '）'],
+    ['種別', r.type],
+    ['件名', r.subject],
+    ['金額', '¥' + Number(r.amount).toLocaleString()],
+    ['提出日時', r.submittedAt],
+    ['現在の状態', r.status]
+  ];
+  document.getElementById('dp-fields').innerHTML = fields.map(function(f) {
+    return '<div class="dp-field"><div class="dp-label">'+f[0]+'</div><div class="dp-value">'+f[1]+'</div></div>';
+  }).join('');
+  document.getElementById('dp-comment').value = '';
+  document.getElementById('detail-panel').classList.add('open');
+  // スクロールしてパネルを見せる
+  document.getElementById('detail-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+function closeDetail() {
+  document.getElementById('detail-panel').classList.remove('open');
+  openId = null;
+}
+
+// ─────────────────────────────────────────────
+//  承認・差し戻し処理
+// ─────────────────────────────────────────────
+function processApproval(newStatus) {
+  if (!openId) return;
+  var comment = document.getElementById('dp-comment').value.trim();
+  var now     = nowStr();
+
+  var params = {
+    action:  'updateStatus',
+    id:      openId,
+    status:  newStatus,
+    comment: comment,
+    approvedAt: now
+  };
+
+  if (GAS_URL) {
+    // GASへPOSTしてシートを更新
+    var cbName2 = 'cbProc_' + Date.now();
+    var encoded = encodeURIComponent(JSON.stringify(params));
+    var script2 = document.createElement('script');
+    script2.src = GAS_URL + '?action=updateStatus&data=' + encoded + '&callback=' + cbName2;
+    var savedId = openId;
+    window[cbName2] = function(result) {
+      delete window[cbName2];
+      document.body.removeChild(script2);
+      if (result.success) {
+        updateLocal(savedId, newStatus, now, comment);
+        showToast((newStatus==='承認済み'?'✅ 承認':'↩ 差し戻し') + 'しました。');
+        closeDetail();
+        renderPending(); renderMetrics();
+      } else {
+        showToast('❌ 更新エラー: ' + result.message, 4000);
+      }
+    };
+    script2.onerror = function() {
+      delete window[cbName2];
+      document.body.removeChild(script2);
+      showToast('❌ 通信エラーが発生しました', 4000);
+    };
+    document.body.appendChild(script2);
+  } else {
+    // GAS未設定時はローカル更新
+    updateLocal(openId, newStatus, now, comment);
+    showToast((newStatus==='承認済み'?'✅ 承認':'↩ 差し戻し') + 'しました（ローカル更新）');
+    closeDetail();
+    renderPending(); renderMetrics();
+  }
+}
+
+function updateLocal(id, status, approvedAt, comment) {
+  var idx = allData.findIndex(function(x){ return x.id === id; });
+  if (idx >= 0) {
+    allData[idx].status     = status;
+    allData[idx].approvedAt = approvedAt;
+    allData[idx].comment    = comment;
+  }
+}
+
+// ─────────────────────────────────────────────
+//  設定保存
+// ─────────────────────────────────────────────
+function saveSettings() {
+  GAS_URL = document.getElementById('s-gas-url').value.trim();
+  localStorage.setItem('approver_gasUrl', GAS_URL);
+  localStorage.setItem('approver_lwBot', document.getElementById('s-lw-bot').value.trim());
+  localStorage.setItem('approver_lwCh',  document.getElementById('s-lw-ch').value.trim());
+  showToast('✅ 設定を保存しました');
+}
+
+// ─────────────────────────────────────────────
+//  デモデータ（GAS未設定時）
+// ─────────────────────────────────────────────
+function getDemoData() {
+  return [
+    { id:'SH-0001', type:'支払申請（会食）',       name:'田中 花子', dept:'業務管理部', subject:'会食：○○レストラン（熊本市）', amount:38500, status:'承認待ち', submittedAt:'2026/05/07 09:15', approvedAt:'', comment:'' },
+    { id:'SH-0002', type:'出張',                   name:'山田 太郎', dept:'営業部',     subject:'大分出張：得意先訪問',           amount:24500, status:'承認待ち', submittedAt:'2026/05/07 10:42', approvedAt:'', comment:'' },
+    { id:'SH-0003', type:'支払申請（事務用品・消耗品）', name:'佐藤 次郎', dept:'物流部',  subject:'コピー用紙 A4 他2件',            amount:3850,  status:'承認済み', submittedAt:'2026/05/06 14:00', approvedAt:'2026/05/06 17:30', comment:'問題なし。承認します。' },
+    { id:'SH-0004', type:'支払申請（贈答品）',      name:'田中 花子', dept:'業務管理部', subject:'贈答品：カタログギフト（○○病院 院長）', amount:8000, status:'差し戻し', submittedAt:'2026/05/05 11:00', approvedAt:'2026/05/05 15:00', comment:'金額の根拠を追記のうえ再申請してください。' }
+  ];
+}
+
+// ─────────────────────────────────────────────
+//  初期ロード
+// ─────────────────────────────────────────────
+loadData();
+</script>
+</body>
+</html>

@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>社内申請システム</title>
+<style>
+  /* ─────────── リセット・基本 ─────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+         background: #f4f6f9; color: #1a1a2e; font-size: 14px; }
+
+  /* ─────────── レイアウト ─────────── */
+  .container { max-width: 720px; margin: 0 auto; padding: 16px; }
+  .top-bar { background: #fff; border-bottom: 1px solid #e0e4ed;
+             padding: 12px 16px; display: flex; align-items: center;
+             justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+  .app-logo { font-size: 15px; font-weight: 600; color: #2563eb;
+              display: flex; align-items: center; gap: 6px; }
+  .app-logo span { font-size: 11px; color: #6b7280; font-weight: 400; }
+
+  /* ─────────── タブ ─────────── */
+  .tabs { display: flex; gap: 4px; background: #f0f2f7;
+          border-radius: 10px; padding: 4px; margin: 16px 0; }
+  .tab { flex: 1; padding: 9px 8px; border: none; border-radius: 7px;
+         background: none; font-size: 13px; font-weight: 500;
+         color: #6b7280; cursor: pointer; transition: all .15s; }
+  .tab.active { background: #fff; color: #1a1a2e;
+                box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+
+  /* ─────────── カード ─────────── */
+  .card { background: #fff; border: 1px solid #e5e8f0;
+          border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; }
+  .sec-label { font-size: 11px; font-weight: 600; color: #9ca3af;
+               text-transform: uppercase; letter-spacing: .08em; margin-bottom: 12px; }
+
+  /* ─────────── フォーム部品 ─────────── */
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .field { margin-bottom: 10px; }
+  .field label { display: block; font-size: 12px; color: #6b7280;
+                 margin-bottom: 4px; font-weight: 500; }
+  .field label .req { color: #ef4444; font-size: 10px; margin-left: 3px; }
+  input[type=text], input[type=date], input[type=number], select, textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid #d1d5db;
+    border-radius: 7px; font-size: 13px; background: #fff;
+    transition: border-color .15s; }
+  input:focus, select:focus, textarea:focus {
+    outline: none; border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+  textarea { resize: vertical; min-height: 64px; }
+
+  /* ─────────── 品目テーブル ─────────── */
+  .item-row { display: grid; grid-template-columns: 1fr 70px 88px 32px;
+              gap: 7px; align-items: end; margin-bottom: 8px; }
+  .add-item-btn { width: 100%; padding: 8px; border: 1px dashed #93c5fd;
+                  border-radius: 7px; background: none; color: #2563eb;
+                  font-size: 12px; cursor: pointer; margin-top: 4px; }
+  .del-item-btn { background: none; border: none; color: #ef4444;
+                  font-size: 16px; cursor: pointer; padding: 4px; }
+
+  /* ─────────── 合計 ─────────── */
+  .total-row { display: flex; justify-content: space-between;
+               align-items: center; padding: 10px 0 0;
+               border-top: 1px solid #f0f2f7; margin-top: 6px; }
+  .total-label { font-size: 12px; color: #6b7280; }
+  .total-amount { font-size: 20px; font-weight: 700; color: #1a1a2e; }
+
+  /* ─────────── アップロード ─────────── */
+  .upload-zone { border: 1.5px dashed #d1d5db; border-radius: 10px;
+                 padding: 20px; text-align: center; cursor: pointer;
+                 background: #fafbfe; transition: border-color .15s; }
+  .upload-zone:hover { border-color: #2563eb; background: #eff6ff; }
+  .upload-icon { font-size: 28px; color: #9ca3af; margin-bottom: 6px; }
+  .upload-text { font-size: 13px; color: #6b7280; }
+  .upload-hint { font-size: 11px; color: #9ca3af; margin-top: 3px; }
+  .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px,1fr));
+                  gap: 8px; margin-top: 10px; }
+  .preview-item { position: relative; border-radius: 8px; overflow: hidden;
+                  border: 1px solid #e5e8f0; aspect-ratio: 1;
+                  background: #f8f9fc; display: flex; align-items: center;
+                  justify-content: center; flex-direction: column; }
+  .preview-item img { width: 100%; height: 100%; object-fit: cover; }
+  .remove-btn { position: absolute; top: 3px; right: 3px; width: 18px; height: 18px;
+                border-radius: 50%; background: rgba(0,0,0,.5); border: none;
+                color: #fff; font-size: 10px; cursor: pointer; }
+
+  /* ─────────── 送信ボタン ─────────── */
+  .submit-btn { width: 100%; padding: 13px; background: #2563eb;
+                color: #fff; border: none; border-radius: 10px;
+                font-size: 14px; font-weight: 600; cursor: pointer;
+                display: flex; align-items: center; justify-content: center;
+                gap: 8px; transition: background .15s; }
+  .submit-btn:hover { background: #1d4ed8; }
+  .submit-btn:disabled { background: #9ca3af; cursor: not-allowed; }
+
+  /* ─────────── バッジ・ステータス ─────────── */
+  .badge { display: inline-block; font-size: 11px; font-weight: 600;
+           padding: 3px 8px; border-radius: 20px; }
+  .badge-pending  { background: #fef3c7; color: #92400e; }
+  .badge-approved { background: #d1fae5; color: #065f46; }
+  .badge-rejected { background: #fee2e2; color: #991b1b; }
+
+  /* ─────────── 履歴テーブル ─────────── */
+  .hist-wrap { overflow-x: auto; }
+  .hist-table { width: 100%; border-collapse: collapse; font-size: 12px;
+                table-layout: fixed; }
+  .hist-table th { font-size: 11px; color: #9ca3af; font-weight: 600;
+                   padding: 8px; border-bottom: 1px solid #f0f2f7;
+                   text-align: left; background: #fafbfe; }
+  .hist-table td { padding: 9px 8px; border-bottom: 1px solid #f5f6f8;
+                   color: #374151; vertical-align: middle;
+                   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hist-table tr:hover td { background: #f8faff; }
+  .detail-btn { background: none; border: 1px solid #d1d5db;
+                border-radius: 5px; color: #4b5563; font-size: 11px;
+                padding: 3px 8px; cursor: pointer; }
+
+  /* ─────────── メトリクス ─────────── */
+  .metrics { display: grid; grid-template-columns: repeat(4,1fr);
+             gap: 8px; margin-bottom: 12px; }
+  .metric-card { background: #fff; border: 1px solid #e5e8f0;
+                 border-radius: 10px; padding: 12px; text-align: center; }
+  .metric-val { font-size: 22px; font-weight: 700; color: #1a1a2e; }
+  .metric-lbl { font-size: 10px; color: #9ca3af; margin-top: 2px; }
+  .metric-warn  { color: #d97706; }
+  .metric-ok    { color: #10b981; }
+
+  /* ─────────── 区分選択ボタン ─────────── */
+  .cat-btn { padding: 14px 10px; border: 1.5px solid #e5e8f0; border-radius: 10px;
+             background: #fff; font-size: 13px; font-weight: 500; color: #374151;
+             cursor: pointer; text-align: center; transition: all .15s; }
+  .cat-btn:hover { border-color: #2563eb; background: #eff6ff; color: #1d4ed8; }
+  .cat-btn.selected { border-color: #2563eb; background: #eff6ff; color: #1d4ed8;
+                      box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+
+  /* ─────────── Toast通知 ─────────── */
+  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(60px);
+           background: #1a1a2e; color: #fff; padding: 10px 20px;
+           border-radius: 20px; font-size: 13px; opacity: 0;
+           transition: all .3s; z-index: 9999; white-space: nowrap; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ─────────── 表示切替 ─────────── */
+  .page { display: none; }
+  .page.active { display: block; }
+  .empty-state { text-align: center; padding: 32px 16px; color: #9ca3af; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="app-logo">
+    📋 社内申請システム <span>申請者用</span>
+  </div>
+  <div style="font-size:11px; color:#9ca3af;" id="user-info">—</div>
+</div>
+
+<div class="container">
+
+  <!-- タブ -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('expense')" id="tab-expense">💴 支払申請</button>
+    <button class="tab" onclick="switchTab('travel')" id="tab-travel">✈️ 出張申請</button>
+    <button class="tab" onclick="switchTab('history')" id="tab-history">📋 申請履歴</button>
+  </div>
+
+  <!-- ========== 支払申請フォーム ========== -->
+  <div id="page-expense" class="page active">
+
+    <!-- 上限案内バナー -->
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#1d4ed8;display:flex;align-items:center;gap:8px;">
+      💡 支払申請の上限金額は <strong>¥100,000（税込）</strong> です。超過する場合は上長へ別途ご相談ください。
+    </div>
+
+    <div class="card">
+      <div class="sec-label">申請者情報</div>
+      <div class="row3">
+        <div class="field">
+          <label>氏名 <span class="req">必須</span></label>
+          <input type="text" id="e-name" placeholder="山田 太郎">
+        </div>
+        <div class="field">
+          <label>部署</label>
+          <input type="text" id="e-dept" placeholder="業務管理部">
+        </div>
+        <div class="field">
+          <label>申請日</label>
+          <input type="date" id="e-date">
+        </div>
+      </div>
+    </div>
+
+    <!-- 区分選択カード -->
+    <div class="card">
+      <div class="sec-label">支払区分 <span style="color:#ef4444;font-size:10px;">必須</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="category-btns">
+        <button type="button" class="cat-btn" data-cat="会食" onclick="selectCategory('会食')">
+          🍽 会食
+        </button>
+        <button type="button" class="cat-btn" data-cat="贈答品" onclick="selectCategory('贈答品')">
+          🎁 贈答品
+        </button>
+        <button type="button" class="cat-btn" data-cat="事務用品・消耗品" onclick="selectCategory('事務用品・消耗品')">
+          🖊 事務用品・消耗品
+        </button>
+        <button type="button" class="cat-btn" data-cat="その他" onclick="selectCategory('その他')">
+          📝 その他
+        </button>
+      </div>
+    </div>
+
+    <!-- 区分別入力エリア（区分選択後に表示） -->
+    <div id="cat-detail-area" style="display:none;">
+
+      <!-- 会食 -->
+      <div id="cat-kaishoku" class="cat-section" style="display:none;">
+        <div class="card">
+          <div class="sec-label">会食の詳細</div>
+          <div class="row2">
+            <div class="field">
+              <label>開催日 <span class="req">必須</span></label>
+              <input type="date" id="k-date">
+            </div>
+            <div class="field">
+              <label>開催場所・店名 <span class="req">必須</span></label>
+              <input type="text" id="k-place" placeholder="例）〇〇レストラン（熊本市中央区）">
+            </div>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label>参加人数</label>
+              <input type="number" id="k-count" placeholder="例）4" min="1">
+            </div>
+            <div class="field">
+              <label>取引先・相手方</label>
+              <input type="text" id="k-partner" placeholder="例）○○製薬 田中様">
+            </div>
+          </div>
+          <div class="field">
+            <label>会食の目的 <span class="req">必須</span></label>
+            <textarea id="k-purpose" placeholder="例）新製品説明会後の懇親会、取引先との関係強化 など"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 贈答品 -->
+      <div id="cat-zoutohin" class="cat-section" style="display:none;">
+        <div class="card">
+          <div class="sec-label">贈答品の詳細</div>
+          <div class="row2">
+            <div class="field">
+              <label>贈答先（相手方） <span class="req">必須</span></label>
+              <input type="text" id="z-to" placeholder="例）○○病院 院長 △△先生">
+            </div>
+            <div class="field">
+              <label>贈答の機会・理由 <span class="req">必須</span></label>
+              <input type="text" id="z-reason" placeholder="例）開院記念、年末御礼 など">
+            </div>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label>品名 <span class="req">必須</span></label>
+              <input type="text" id="z-item" placeholder="例）カタログギフト">
+            </div>
+            <div class="field">
+              <label>個数</label>
+              <input type="number" id="z-count" placeholder="例）1" min="1">
+            </div>
+          </div>
+          <div class="field">
+            <label>備考</label>
+            <textarea id="z-note" placeholder="その他特記事項があればご記入ください"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 事務用品・消耗品 -->
+      <div id="cat-jimu" class="cat-section" style="display:none;">
+        <div class="card">
+          <div class="sec-label">購入品目</div>
+          <div id="items-list">
+            <div class="item-row">
+              <div>
+                <div style="font-size:11px;color:#9ca3af;margin-bottom:3px;">品名</div>
+                <input type="text" placeholder="例：コピー用紙 A4">
+              </div>
+              <div>
+                <div style="font-size:11px;color:#9ca3af;margin-bottom:3px;">数量</div>
+                <input type="number" placeholder="1" min="1" oninput="calcTotal()">
+              </div>
+              <div>
+                <div style="font-size:11px;color:#9ca3af;margin-bottom:3px;">金額（円）</div>
+                <input type="number" placeholder="0" min="0" oninput="calcTotal()">
+              </div>
+              <button class="del-item-btn" onclick="delItem(this)" title="削除">✕</button>
+            </div>
+          </div>
+          <button class="add-item-btn" onclick="addItem()">＋ 品目を追加</button>
+          <div class="field" style="margin-top:10px;">
+            <label>購入理由・用途</label>
+            <textarea id="j-reason" placeholder="例）印刷業務の消耗品補充、在庫切れのため緊急調達 など"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- その他 -->
+      <div id="cat-sonota" class="cat-section" style="display:none;">
+        <div class="card">
+          <div class="sec-label">支払内容の詳細</div>
+          <div class="field">
+            <label>支払内容・件名 <span class="req">必須</span></label>
+            <input type="text" id="s-subject" placeholder="例）セミナー参加費、業務委託費 など">
+          </div>
+          <div class="field">
+            <label>支払先</label>
+            <input type="text" id="s-payee" placeholder="例）○○株式会社">
+          </div>
+          <div class="field">
+            <label>支払理由・目的 <span class="req">必須</span></label>
+            <textarea id="s-reason" placeholder="業務上の必要性・効果などをご記入ください"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 共通：金額・添付 -->
+      <div class="card">
+        <div class="sec-label">支払金額</div>
+        <div class="row2">
+          <div class="field">
+            <label>支払金額（税込） <span class="req">必須</span></label>
+            <input type="number" id="e-amount" placeholder="0" min="0" max="100000" oninput="checkLimit()">
+          </div>
+          <div class="field">
+            <label>支払日・予定日</label>
+            <input type="date" id="e-paydate">
+          </div>
+        </div>
+        <!-- 上限超過警告 -->
+        <div id="limit-warning" style="display:none;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:8px 12px;font-size:12px;color:#991b1b;margin-top:4px;">
+          ⚠ 上限金額（¥100,000）を超えています。金額を修正するか、上長へ別途ご相談ください。
+        </div>
+        <div class="total-row" id="amount-display-row">
+          <span class="total-label">申請金額</span>
+          <span class="total-amount" id="total-display">¥0</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec-label">レシート・領収書の添付</div>
+        <input type="file" id="e-file" style="display:none" accept="image/*,application/pdf" multiple onchange="handleFiles(this,'e-prev')">
+        <div class="upload-zone" onclick="document.getElementById('e-file').click()">
+          <div class="upload-icon">📎</div>
+          <div class="upload-text">タップしてファイルを選択</div>
+          <div class="upload-hint">JPEG・PNG・PDF 対応 ／ 複数枚アップロード可</div>
+        </div>
+        <div class="preview-grid" id="e-prev"></div>
+      </div>
+
+      <button class="submit-btn" id="e-submit-btn" onclick="submitRequest('expense')">
+        📤 申請を提出する
+      </button>
+
+    </div><!-- /#cat-detail-area -->
+  </div>
+
+  <!-- ========== 出張申請フォーム ========== -->
+  <div id="page-travel" class="page">
+
+    <div class="card">
+      <div class="sec-label">申請者情報</div>
+      <div class="row3">
+        <div class="field">
+          <label>氏名 <span class="req">必須</span></label>
+          <input type="text" id="t-name" placeholder="山田 太郎">
+        </div>
+        <div class="field">
+          <label>部署</label>
+          <input type="text" id="t-dept" placeholder="業務管理部">
+        </div>
+        <div class="field">
+          <label>申請日</label>
+          <input type="date" id="t-appdate">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-label">出張詳細</div>
+      <div class="row2" style="margin-bottom:10px;">
+        <div class="field" style="margin-bottom:0">
+          <label>出発日 <span class="req">必須</span></label>
+          <input type="date" id="t-from">
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>帰着日 <span class="req">必須</span></label>
+          <input type="date" id="t-to">
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>出発地</label>
+          <input type="text" id="t-from-p" placeholder="熊本">
+        </div>
+        <div class="field">
+          <label>目的地 <span class="req">必須</span></label>
+          <input type="text" id="t-dest" placeholder="東京">
+        </div>
+      </div>
+      <div class="field">
+        <label>出張目的 <span class="req">必須</span></label>
+        <input type="text" id="t-purpose" placeholder="取引先との定例会議・展示会視察 など">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-label">経費概算</div>
+      <div class="row3">
+        <div class="field">
+          <label>交通費（円）</label>
+          <input type="number" id="t-transport" placeholder="0" min="0" oninput="calcTravel()">
+        </div>
+        <div class="field">
+          <label>宿泊費（円）</label>
+          <input type="number" id="t-hotel" placeholder="0" min="0" oninput="calcTravel()">
+        </div>
+        <div class="field">
+          <label>その他（円）</label>
+          <input type="number" id="t-other" placeholder="0" min="0" oninput="calcTravel()">
+        </div>
+      </div>
+      <div class="total-row">
+        <span class="total-label">合計概算額</span>
+        <span class="total-amount" id="travel-total">¥0</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-label">備考・宿泊先</div>
+      <textarea id="t-note" placeholder="宿泊先ホテル名・同行者・その他連絡事項など"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="sec-label">添付書類（任意）</div>
+      <input type="file" id="t-file" style="display:none" accept="image/*,application/pdf" multiple onchange="handleFiles(this,'t-prev')">
+      <div class="upload-zone" onclick="document.getElementById('t-file').click()">
+        <div class="upload-icon">📎</div>
+        <div class="upload-text">タップしてファイルを選択</div>
+        <div class="upload-hint">JPEG・PNG・PDF 対応 ／ 複数枚アップロード可</div>
+      </div>
+      <div class="preview-grid" id="t-prev"></div>
+    </div>
+
+    <button class="submit-btn" id="t-submit-btn" onclick="submitRequest('travel')">
+      📤 申請を提出する
+    </button>
+  </div>
+
+  <!-- ========== 申請履歴 ========== -->
+  <div id="page-history" class="page">
+
+    <div class="metrics" id="hist-metrics"></div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div class="sec-label" style="margin-bottom:0">申請履歴一覧</div>
+        <select id="hist-filter" onchange="renderHistory()" style="font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid #d1d5db;">
+          <option value="all">すべて</option>
+          <option value="承認待ち">承認待ち</option>
+          <option value="承認済み">承認済み</option>
+          <option value="差し戻し">差し戻し</option>
+        </select>
+      </div>
+      <div class="hist-wrap">
+        <table class="hist-table">
+          <thead>
+            <tr>
+              <th style="width:90px">申請番号</th>
+              <th style="width:58px">種別</th>
+              <th style="width:74px">申請日</th>
+              <th>件名</th>
+              <th style="width:74px;text-align:right">金額</th>
+              <th style="width:70px">状態</th>
+            </tr>
+          </thead>
+          <tbody id="hist-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- GAS URL設定 -->
+<div style="text-align:center;padding:12px;border-top:1px solid #e5e8f0;background:#fafbfe;margin-top:8px;">
+  <details style="font-size:12px;color:#9ca3af;">
+    <summary style="cursor:pointer;color:#6b7280;">⚙ GAS接続設定</summary>
+    <div style="padding:12px;text-align:left;max-width:500px;margin:0 auto;">
+      <label style="display:block;font-size:11px;color:#6b7280;margin-bottom:4px;">GAS デプロイURL</label>
+      <input type="text" id="gas-url-input" placeholder="https://script.google.com/macros/s/.../exec"
+             style="width:100%;padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;">
+      <button onclick="saveGasUrl()" style="margin-top:6px;padding:6px 14px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;">
+        保存
+      </button>
+    </div>
+  </details>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────
+//  設定・状態管理
+// ─────────────────────────────────────────────
+var GAS_URL = localStorage.getItem('gasUrl') || '';
+// ローカルキャッシュ（GASから取得済みデータ）
+var localRequests = JSON.parse(localStorage.getItem('myRequests') || '[]');
+
+// 起動時に設定を反映
+document.getElementById('gas-url-input').value = GAS_URL;
+document.getElementById('e-date').value = todayStr();
+document.getElementById('t-appdate').value = todayStr();
+
+// ─────────────────────────────────────────────
+//  ユーティリティ
+// ─────────────────────────────────────────────
+function todayStr() {
+  return new Date().toISOString().split('T')[0];
+}
+function nowStr() {
+  var d = new Date();
+  return d.toLocaleDateString('ja-JP') + ' ' +
+         d.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+}
+function showToast(msg, duration) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, duration || 3000);
+}
+function saveGasUrl() {
+  GAS_URL = document.getElementById('gas-url-input').value.trim();
+  localStorage.setItem('gasUrl', GAS_URL);
+  showToast('✅ GAS URLを保存しました');
+}
+
+// ─────────────────────────────────────────────
+//  タブ切り替え
+// ─────────────────────────────────────────────
+function switchTab(t) {
+  ['expense','travel','history'].forEach(function(x) {
+    document.getElementById('tab-'+x).classList.toggle('active', x===t);
+    document.getElementById('page-'+x).classList.toggle('active', x===t);
+  });
+  if (t === 'history') { renderMetrics(); renderHistory(); }
+}
+
+// ─────────────────────────────────────────────
+//  支払申請 - 区分選択
+// ─────────────────────────────────────────────
+var selectedCategory = '';
+
+function selectCategory(cat) {
+  selectedCategory = cat;
+  // ボタンのハイライト切り替え
+  document.querySelectorAll('.cat-btn').forEach(function(b) {
+    b.classList.toggle('selected', b.dataset.cat === cat);
+  });
+  // 区分別入力エリアを表示
+  document.getElementById('cat-detail-area').style.display = 'block';
+  // 全区分セクションを非表示にしてから選択区分だけ表示
+  document.querySelectorAll('.cat-section').forEach(function(s) { s.style.display = 'none'; });
+  var map = { '会食': 'kaishoku', '贈答品': 'zoutohin', '事務用品・消耗品': 'jimu', 'その他': 'sonota' };
+  var sectionId = 'cat-' + map[cat];
+  if (document.getElementById(sectionId)) {
+    document.getElementById(sectionId).style.display = 'block';
+  }
+  // 金額欄をリセット
+  document.getElementById('e-amount').value = '';
+  document.getElementById('total-display').textContent = '¥0';
+  document.getElementById('limit-warning').style.display = 'none';
+}
+
+// ─────────────────────────────────────────────
+//  支払申請 - 上限金額チェック（10万円）
+// ─────────────────────────────────────────────
+function checkLimit() {
+  var val = parseFloat(document.getElementById('e-amount').value) || 0;
+  document.getElementById('total-display').textContent = '¥' + Math.round(val).toLocaleString();
+  var warn = document.getElementById('limit-warning');
+  var btn  = document.getElementById('e-submit-btn');
+  if (val > 100000) {
+    warn.style.display = 'block';
+    btn.disabled = true;
+    btn.style.background = '#9ca3af';
+  } else {
+    warn.style.display = 'none';
+    btn.disabled = false;
+    btn.style.background = '';
+  }
+}
+
+// ─────────────────────────────────────────────
+//  事務用品・消耗品 - 品目操作（品目合計は金額欄に反映しない）
+// ─────────────────────────────────────────────
+function calcTotal() {
+  // 事務用品の品目合計を金額欄へ自動反映
+  var rows = document.querySelectorAll('#items-list .item-row');
+  var sum = 0;
+  rows.forEach(function(r) {
+    var ins = r.querySelectorAll('input[type=number]');
+    var qty = parseFloat(ins[0] && ins[0].value) || 0;
+    var prc = parseFloat(ins[1] && ins[1].value) || 0;
+    sum += qty * prc;
+  });
+  // 事務用品区分選択中のみ金額欄に反映
+  if (selectedCategory === '事務用品・消耗品') {
+    document.getElementById('e-amount').value = Math.round(sum);
+    document.getElementById('total-display').textContent = '¥' + Math.round(sum).toLocaleString();
+    checkLimit();
+  }
+}
+function addItem() {
+  var l = document.getElementById('items-list');
+  var d = document.createElement('div');
+  d.className = 'item-row';
+  d.innerHTML =
+    '<div><input type="text" placeholder="品名"></div>' +
+    '<div><input type="number" placeholder="1" min="1" oninput="calcTotal()"></div>' +
+    '<div><input type="number" placeholder="0" min="0" oninput="calcTotal()"></div>' +
+    '<button class="del-item-btn" onclick="delItem(this)" title="削除">✕</button>';
+  l.appendChild(d);
+}
+function delItem(b) {
+  if (document.querySelectorAll('#items-list .item-row').length <= 1) return;
+  b.closest('.item-row').remove();
+  calcTotal();
+}
+
+// ─────────────────────────────────────────────
+//  出張 - 経費合計計算
+// ─────────────────────────────────────────────
+function calcTravel() {
+  var sum = ['t-transport','t-hotel','t-other'].reduce(function(a, id) {
+    return a + (parseFloat(document.getElementById(id).value) || 0);
+  }, 0);
+  document.getElementById('travel-total').textContent = '¥' + Math.round(sum).toLocaleString();
+}
+
+// ─────────────────────────────────────────────
+//  ファイルプレビュー
+// ─────────────────────────────────────────────
+function handleFiles(inp, prevId) {
+  var prev = document.getElementById(prevId);
+  Array.from(inp.files).forEach(function(f) {
+    var item = document.createElement('div');
+    item.className = 'preview-item';
+    if (f.type.startsWith('image/')) {
+      var r = new FileReader();
+      r.onload = function(e) {
+        item.innerHTML = '<img src="'+e.target.result+'" alt="'+f.name+'">' +
+          '<button class="remove-btn" onclick="this.parentElement.remove()">✕</button>';
+      };
+      r.readAsDataURL(f);
+    } else {
+      item.innerHTML = '<div style="font-size:24px;">📄</div>' +
+        '<div style="font-size:9px;color:#6b7280;padding:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">'+f.name+'</div>' +
+        '<button class="remove-btn" onclick="this.parentElement.remove()">✕</button>';
+    }
+    prev.appendChild(item);
+  });
+}
+
+// ─────────────────────────────────────────────
+//  申請提出
+// ─────────────────────────────────────────────
+function submitRequest(type) {
+  var name, dept, subject, amount = 0, extra = {};
+
+  if (type === 'expense') {
+    name = document.getElementById('e-name').value.trim();
+    dept = document.getElementById('e-dept').value.trim();
+    if (!name) { showToast('⚠ 氏名を入力してください'); return; }
+    if (!selectedCategory) { showToast('⚠ 支払区分を選択してください'); return; }
+
+    amount = parseFloat(document.getElementById('e-amount').value) || 0;
+    if (amount <= 0)       { showToast('⚠ 支払金額を入力してください'); return; }
+    if (amount > 100000)   { showToast('⚠ 上限金額（¥100,000）を超えています'); return; }
+
+    // 区分ごとに件名と追加情報を収集
+    var catDetail = { category: selectedCategory };
+    if (selectedCategory === '会食') {
+      catDetail.date    = document.getElementById('k-date').value;
+      catDetail.place   = document.getElementById('k-place').value;
+      catDetail.count   = document.getElementById('k-count').value;
+      catDetail.partner = document.getElementById('k-partner').value;
+      catDetail.purpose = document.getElementById('k-purpose').value;
+      if (!catDetail.place)   { showToast('⚠ 開催場所・店名を入力してください'); return; }
+      if (!catDetail.purpose) { showToast('⚠ 会食の目的を入力してください'); return; }
+      subject = '会食：' + catDetail.place;
+    } else if (selectedCategory === '贈答品') {
+      catDetail.to     = document.getElementById('z-to').value;
+      catDetail.reason = document.getElementById('z-reason').value;
+      catDetail.item   = document.getElementById('z-item').value;
+      catDetail.count  = document.getElementById('z-count').value;
+      catDetail.note   = document.getElementById('z-note').value;
+      if (!catDetail.to)     { showToast('⚠ 贈答先を入力してください'); return; }
+      if (!catDetail.item)   { showToast('⚠ 品名を入力してください'); return; }
+      if (!catDetail.reason) { showToast('⚠ 贈答の理由を入力してください'); return; }
+      subject = '贈答品：' + catDetail.item + '（' + catDetail.to + '）';
+    } else if (selectedCategory === '事務用品・消耗品') {
+      var rows  = document.querySelectorAll('#items-list .item-row');
+      var items = [];
+      rows.forEach(function(r) {
+        var ins = r.querySelectorAll('input');
+        var nm  = ins[0] && ins[0].value.trim();
+        var qt  = parseFloat(ins[1] && ins[1].value) || 0;
+        var pr  = parseFloat(ins[2] && ins[2].value) || 0;
+        if (nm) items.push({ name: nm, qty: qt, price: pr });
+      });
+      if (items.length === 0) { showToast('⚠ 品目を入力してください'); return; }
+      catDetail.items  = items;
+      catDetail.reason = document.getElementById('j-reason').value;
+      subject = items[0].name + (items.length > 1 ? ' 他' + (items.length - 1) + '件' : '');
+    } else {
+      catDetail.subject = document.getElementById('s-subject').value;
+      catDetail.payee   = document.getElementById('s-payee').value;
+      catDetail.reason  = document.getElementById('s-reason').value;
+      if (!catDetail.subject) { showToast('⚠ 支払内容・件名を入力してください'); return; }
+      if (!catDetail.reason)  { showToast('⚠ 支払理由を入力してください'); return; }
+      subject = catDetail.subject;
+    }
+    extra = catDetail;
+
+  } else {
+    name    = document.getElementById('t-name').value.trim();
+    dept    = document.getElementById('t-dept').value.trim();
+    var dest = document.getElementById('t-dest').value.trim();
+    var purpose = document.getElementById('t-purpose').value.trim();
+    if (!name)    { showToast('⚠ 氏名を入力してください'); return; }
+    if (!dest)    { showToast('⚠ 目的地を入力してください'); return; }
+    if (!purpose) { showToast('⚠ 出張目的を入力してください'); return; }
+    amount  = (parseFloat(document.getElementById('t-transport').value)||0) +
+              (parseFloat(document.getElementById('t-hotel').value)||0) +
+              (parseFloat(document.getElementById('t-other').value)||0);
+    subject = dest + '出張：' + purpose;
+    extra   = {
+      from: document.getElementById('t-from').value,
+      to:   document.getElementById('t-to').value,
+      dest: dest, purpose: purpose,
+      note: document.getElementById('t-note').value
+    };
+  }
+
+  var data = {
+    type:        type === 'expense' ? '支払申請（' + selectedCategory + '）' : '出張',
+    name:        name,
+    dept:        dept || '—',
+    subject:     subject,
+    amount:      Math.round(amount),
+    submittedAt: nowStr(),
+    extra:       extra
+  };
+
+  // ボタン非活性化（二重送信防止）
+  var btn = document.getElementById(type === 'expense' ? 'e-submit-btn' : 't-submit-btn');
+  btn.disabled = true;
+  btn.textContent = '送信中...';
+
+  if (GAS_URL) {
+    // JSONP方式でGASへ送信（CORSエラー回避）
+    var cbName = 'cb_' + Date.now();
+    var encoded = encodeURIComponent(JSON.stringify(data));
+    var script = document.createElement('script');
+    script.src = GAS_URL + '?action=submit&data=' + encoded + '&callback=' + cbName;
+    window[cbName] = function(result) {
+      delete window[cbName];
+      document.body.removeChild(script);
+      btn.disabled = false;
+      btn.textContent = '📤 申請を提出する';
+      if (result.success) {
+        data.id = result.requestId;
+        data.status = '承認待ち';
+        localRequests.unshift(data);
+        localStorage.setItem('myRequests', JSON.stringify(localRequests));
+        showToast('✅ 申請番号 ' + result.requestId + ' で受け付けました');
+        switchTab('history');
+      } else {
+        showToast('❌ 送信エラー: ' + result.message, 4000);
+      }
+    };
+    script.onerror = function() {
+      delete window[cbName];
+      document.body.removeChild(script);
+      btn.disabled = false;
+      btn.textContent = '📤 申請を提出する';
+      showToast('❌ 通信エラー。GAS URLを確認してください', 4000);
+    };
+    document.body.appendChild(script);
+  } else {
+    // GAS未設定時はローカル保存（デモ動作）
+    var seqMap = { expense: 'SH', travel: 'SH' };
+    data.id     = seqMap[type] + '-' + String(localRequests.length + 1).padStart(4, '0');
+    data.status = '承認待ち';
+    localRequests.unshift(data);
+    localStorage.setItem('myRequests', JSON.stringify(localRequests));
+    showToast('✅ 申請番号 ' + data.id + ' で受け付けました（ローカル保存）');
+    btn.disabled = false;
+    btn.textContent = '📤 申請を提出する';
+    switchTab('history');
+  }
+}
+
+// ─────────────────────────────────────────────
+//  履歴表示
+// ─────────────────────────────────────────────
+function renderMetrics() {
+  var list = localRequests;
+  var total    = list.length;
+  var pending  = list.filter(function(r){return r.status==='承認待ち';}).length;
+  var approved = list.filter(function(r){return r.status==='承認済み';}).length;
+  var sumAmt   = list.reduce(function(a,r){return a+r.amount;},0);
+  document.getElementById('hist-metrics').innerHTML =
+    '<div class="metric-card"><div class="metric-val">'+total+'</div><div class="metric-lbl">総申請数</div></div>' +
+    '<div class="metric-card"><div class="metric-val metric-warn">'+pending+'</div><div class="metric-lbl">承認待ち</div></div>' +
+    '<div class="metric-card"><div class="metric-val metric-ok">'+approved+'</div><div class="metric-lbl">承認済み</div></div>' +
+    '<div class="metric-card"><div class="metric-val" style="font-size:15px;">¥'+Math.round(sumAmt).toLocaleString()+'</div><div class="metric-lbl">合計金額</div></div>';
+}
+
+function renderHistory() {
+  var filter = document.getElementById('hist-filter').value;
+  var list   = filter === 'all' ? localRequests : localRequests.filter(function(r){return r.status===filter;});
+  var tbody  = document.getElementById('hist-tbody');
+  if (list.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">申請履歴はありません</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(function(r) {
+    var bClass = r.status==='承認待ち'?'badge-pending':r.status==='承認済み'?'badge-approved':'badge-rejected';
+    return '<tr>' +
+      '<td style="font-family:monospace;font-size:11px;">' + r.id + '</td>' +
+      '<td>' + r.type + '</td>' +
+      '<td style="font-size:11px;">' + (r.submittedAt||'').split(' ')[0] + '</td>' +
+      '<td>' + r.subject + '</td>' +
+      '<td style="text-align:right;">¥' + Math.round(r.amount).toLocaleString() + '</td>' +
+      '<td><span class="badge '+bClass+'">' + r.status + '</span></td>' +
+      '</tr>';
+  }).join('');
+}
+
+// 初期履歴表示
+if (localRequests.length > 0) { renderMetrics(); }
+</script>
+</body>
+</html>
