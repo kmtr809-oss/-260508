@@ -230,7 +230,7 @@
           <div class="row2">
             <div class="field">
               <label>参加人数</label>
-              <input type="number" id="k-count" placeholder="例）4" min="1">
+              <input type="text" id="k-count" placeholder="例）4">
             </div>
             <div class="field">
               <label>取引先・相手方</label>
@@ -265,7 +265,7 @@
             </div>
             <div class="field">
               <label>個数</label>
-              <input type="number" id="z-count" placeholder="例）1" min="1">
+              <input type="text" id="z-count" placeholder="例）1">
             </div>
           </div>
           <div class="field">
@@ -287,17 +287,27 @@
               </div>
               <div>
                 <div style="font-size:11px;color:#9ca3af;margin-bottom:3px;">数量</div>
-                <input type="number" placeholder="1" min="1" oninput="calcTotal()">
+                <input type="text" placeholder="1" oninput="calcTotal()">
               </div>
               <div>
                 <div style="font-size:11px;color:#9ca3af;margin-bottom:3px;">金額（円）</div>
-                <input type="number" placeholder="0" min="0" oninput="calcTotal()">
+                <input type="text" placeholder="0" oninput="calcTotal()">
               </div>
               <button class="del-item-btn" onclick="delItem(this)" title="削除">✕</button>
             </div>
           </div>
           <button class="add-item-btn" onclick="addItem()">＋ 品目を追加</button>
-          <div class="field" style="margin-top:10px;">
+          <div class="row2" style="margin-top:10px;">
+            <div class="field">
+              <label>購入先 <span class="req">必須</span></label>
+              <input type="text" id="j-shop" placeholder="例）アスクル、近隣のホームセンター など">
+            </div>
+            <div class="field">
+              <label>購入日</label>
+              <input type="date" id="j-date">
+            </div>
+          </div>
+          <div class="field">
             <label>購入理由・用途</label>
             <textarea id="j-reason" placeholder="例）印刷業務の消耗品補充、在庫切れのため緊急調達 など"></textarea>
           </div>
@@ -329,7 +339,7 @@
         <div class="row2">
           <div class="field">
             <label>支払金額（税込） <span class="req">必須</span></label>
-            <input type="number" id="e-amount" placeholder="0" min="0" max="100000" oninput="checkLimit()">
+            <input type="text" id="e-amount" placeholder="0" oninput="checkLimit()">
           </div>
           <div class="field">
             <label>支払日・予定日</label>
@@ -418,15 +428,15 @@
       <div class="row3">
         <div class="field">
           <label>交通費（円）</label>
-          <input type="number" id="t-transport" placeholder="0" min="0" oninput="calcTravel()">
+          <input type="text" id="t-transport" placeholder="0" oninput="calcTravel()">
         </div>
         <div class="field">
           <label>宿泊費（円）</label>
-          <input type="number" id="t-hotel" placeholder="0" min="0" oninput="calcTravel()">
+          <input type="text" id="t-hotel" placeholder="0" oninput="calcTravel()">
         </div>
         <div class="field">
           <label>その他（円）</label>
-          <input type="number" id="t-other" placeholder="0" min="0" oninput="calcTravel()">
+          <input type="text" id="t-other" placeholder="0" oninput="calcTravel()">
         </div>
       </div>
       <div class="total-row">
@@ -585,7 +595,7 @@ function selectCategory(cat) {
 //  支払申請 - 上限金額チェック（10万円）
 // ─────────────────────────────────────────────
 function checkLimit() {
-  var val = parseFloat(document.getElementById('e-amount').value) || 0;
+  var val = toNum(document.getElementById('e-amount').value);
   document.getElementById('total-display').textContent = '¥' + Math.round(val).toLocaleString();
   var warn = document.getElementById('limit-warning');
   var btn  = document.getElementById('e-submit-btn');
@@ -603,14 +613,21 @@ function checkLimit() {
 // ─────────────────────────────────────────────
 //  事務用品・消耗品 - 品目操作（品目合計は金額欄に反映しない）
 // ─────────────────────────────────────────────
+function toNum(v) {
+  // 文字列から数値へ変換（カンマ・全角数字も対応）
+  if (!v) return 0;
+  return parseFloat(String(v).replace(/,/g,'').replace(/[０-９]/g, function(s){ return String.fromCharCode(s.charCodeAt(0)-0xFEE0); })) || 0;
+}
 function calcTotal() {
   // 事務用品の品目合計を金額欄へ自動反映
   var rows = document.querySelectorAll('#items-list .item-row');
   var sum = 0;
   rows.forEach(function(r) {
-    var ins = r.querySelectorAll('input[type=number]');
-    var qty = parseFloat(ins[0] && ins[0].value) || 0;
-    var prc = parseFloat(ins[1] && ins[1].value) || 0;
+    var ins = r.querySelectorAll('input');
+    // 品名欄(text)を除いて数値欄2つを取得
+    var numIns = Array.from(ins).filter(function(i){ return i.type!=='button'; }).slice(1,3);
+    var qty = toNum(numIns[0] && numIns[0].value);
+    var prc = toNum(numIns[1] && numIns[1].value);
     sum += qty * prc;
   });
   // 事務用品区分選択中のみ金額欄に反映
@@ -626,8 +643,8 @@ function addItem() {
   d.className = 'item-row';
   d.innerHTML =
     '<div><input type="text" placeholder="品名"></div>' +
-    '<div><input type="number" placeholder="1" min="1" oninput="calcTotal()"></div>' +
-    '<div><input type="number" placeholder="0" min="0" oninput="calcTotal()"></div>' +
+    '<div><input type="text" placeholder="1" oninput="calcTotal()"></div>' +
+    '<div><input type="text" placeholder="0" oninput="calcTotal()"></div>' +
     '<button class="del-item-btn" onclick="delItem(this)" title="削除">✕</button>';
   l.appendChild(d);
 }
@@ -642,7 +659,7 @@ function delItem(b) {
 // ─────────────────────────────────────────────
 function calcTravel() {
   var sum = ['t-transport','t-hotel','t-other'].reduce(function(a, id) {
-    return a + (parseFloat(document.getElementById(id).value) || 0);
+    return a + toNum(document.getElementById(id).value);
   }, 0);
   document.getElementById('travel-total').textContent = '¥' + Math.round(sum).toLocaleString();
 }
@@ -658,17 +675,39 @@ function handleFiles(inp, prevId) {
     if (f.type.startsWith('image/')) {
       var r = new FileReader();
       r.onload = function(e) {
+        // data属性に画像データを保持（承認者画面での表示に使用）
+        item.dataset.fileData = e.target.result;
+        item.dataset.fileName = f.name;
+        item.dataset.fileType = f.type;
         item.innerHTML = '<img src="'+e.target.result+'" alt="'+f.name+'">' +
           '<button class="remove-btn" onclick="this.parentElement.remove()">✕</button>';
       };
       r.readAsDataURL(f);
     } else {
+      item.dataset.fileName = f.name;
+      item.dataset.fileType = f.type;
       item.innerHTML = '<div style="font-size:24px;">📄</div>' +
         '<div style="font-size:9px;color:#6b7280;padding:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">'+f.name+'</div>' +
         '<button class="remove-btn" onclick="this.parentElement.remove()">✕</button>';
     }
     prev.appendChild(item);
   });
+}
+
+// プレビューエリアから添付データを収集する関数
+function collectAttachments(prevId) {
+  var items = document.querySelectorAll('#' + prevId + ' .preview-item');
+  var attachments = [];
+  items.forEach(function(item) {
+    if (item.dataset.fileName) {
+      attachments.push({
+        name: item.dataset.fileName,
+        type: item.dataset.fileType || '',
+        data: item.dataset.fileData || ''
+      });
+    }
+  });
+  return attachments;
 }
 
 // ─────────────────────────────────────────────
@@ -720,8 +759,11 @@ function submitRequest(type) {
       });
       if (items.length === 0) { showToast('⚠ 品目を入力してください'); return; }
       catDetail.items  = items;
+      catDetail.shop   = document.getElementById('j-shop').value;
+      catDetail.date   = document.getElementById('j-date').value;
       catDetail.reason = document.getElementById('j-reason').value;
-      subject = items[0].name + (items.length > 1 ? ' 他' + (items.length - 1) + '件' : '');
+      if (!catDetail.shop) { showToast('⚠ 購入先を入力してください'); return; }
+      subject = items[0].name + (items.length > 1 ? ' 他' + (items.length - 1) + '件' : '') + '（' + catDetail.shop + '）';
     } else {
       catDetail.subject = document.getElementById('s-subject').value;
       catDetail.payee   = document.getElementById('s-payee').value;
@@ -752,6 +794,9 @@ function submitRequest(type) {
     };
   }
 
+  // 添付ファイルを収集
+  var attachments = collectAttachments(type === 'expense' ? 'e-prev' : 't-prev');
+
   var data = {
     type:        type === 'expense' ? '支払申請（' + selectedCategory + '）' : '出張',
     name:        name,
@@ -759,7 +804,8 @@ function submitRequest(type) {
     subject:     subject,
     amount:      Math.round(amount),
     submittedAt: nowStr(),
-    extra:       extra
+    extra:       extra,
+    attachments: attachments
   };
 
   // ボタン非活性化（二重送信防止）
