@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0056)file:///C:/Users/SHINRAI001/Downloads/applicant_app.html -->
+<html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>社内申請システム</title>
 <style>
@@ -160,9 +160,9 @@
 
   <!-- タブ -->
   <div class="tabs">
-    <button class="tab active" onclick="switchTab('expense')" id="tab-expense">💴 支払申請</button>
-    <button class="tab" onclick="switchTab('travel')" id="tab-travel">✈️ 出張申請</button>
-    <button class="tab" onclick="switchTab('history')" id="tab-history">📋 申請履歴</button>
+    <button class="tab active" onclick="switchTab(&#39;expense&#39;)" id="tab-expense">💴 支払申請</button>
+    <button class="tab" onclick="switchTab(&#39;travel&#39;)" id="tab-travel">✈️ 出張申請</button>
+    <button class="tab" onclick="switchTab(&#39;history&#39;)" id="tab-history">📋 申請履歴</button>
   </div>
 
   <!-- ========== 支払申請フォーム ========== -->
@@ -195,16 +195,16 @@
     <div class="card">
       <div class="sec-label">支払区分 <span style="color:#ef4444;font-size:10px;">必須</span></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="category-btns">
-        <button type="button" class="cat-btn" data-cat="会食" onclick="selectCategory('会食')">
+        <button type="button" class="cat-btn" data-cat="会食" onclick="selectCategory(&#39;会食&#39;)">
           🍽 会食
         </button>
-        <button type="button" class="cat-btn" data-cat="贈答品" onclick="selectCategory('贈答品')">
+        <button type="button" class="cat-btn" data-cat="贈答品" onclick="selectCategory(&#39;贈答品&#39;)">
           🎁 贈答品
         </button>
-        <button type="button" class="cat-btn" data-cat="事務用品・消耗品" onclick="selectCategory('事務用品・消耗品')">
+        <button type="button" class="cat-btn" data-cat="事務用品・消耗品" onclick="selectCategory(&#39;事務用品・消耗品&#39;)">
           🖊 事務用品・消耗品
         </button>
-        <button type="button" class="cat-btn" data-cat="その他" onclick="selectCategory('その他')">
+        <button type="button" class="cat-btn" data-cat="その他" onclick="selectCategory(&#39;その他&#39;)">
           📝 その他
         </button>
       </div>
@@ -358,8 +358,8 @@
 
       <div class="card">
         <div class="sec-label">レシート・領収書の添付</div>
-        <input type="file" id="e-file" style="display:none" accept="image/*,application/pdf" multiple onchange="handleFiles(this,'e-prev')">
-        <div class="upload-zone" onclick="document.getElementById('e-file').click()">
+        <input type="file" id="e-file" style="display:none" accept="image/*,application/pdf" multiple="" onchange="handleFiles(this,&#39;e-prev&#39;)">
+        <div class="upload-zone" onclick="document.getElementById(&#39;e-file&#39;).click()">
           <div class="upload-icon">📎</div>
           <div class="upload-text">タップしてファイルを選択</div>
           <div class="upload-hint">JPEG・PNG・PDF 対応 ／ 複数枚アップロード可</div>
@@ -367,7 +367,7 @@
         <div class="preview-grid" id="e-prev"></div>
       </div>
 
-      <button class="submit-btn" id="e-submit-btn" onclick="submitRequest('expense')">
+      <button class="submit-btn" id="e-submit-btn" onclick="submitRequest(&#39;expense&#39;)">
         📤 申請を提出する
       </button>
 
@@ -452,8 +452,8 @@
 
     <div class="card">
       <div class="sec-label">添付書類（任意）</div>
-      <input type="file" id="t-file" style="display:none" accept="image/*,application/pdf" multiple onchange="handleFiles(this,'t-prev')">
-      <div class="upload-zone" onclick="document.getElementById('t-file').click()">
+      <input type="file" id="t-file" style="display:none" accept="image/*,application/pdf" multiple="" onchange="handleFiles(this,&#39;t-prev&#39;)">
+      <div class="upload-zone" onclick="document.getElementById(&#39;t-file&#39;).click()">
         <div class="upload-icon">📎</div>
         <div class="upload-text">タップしてファイルを選択</div>
         <div class="upload-hint">JPEG・PNG・PDF 対応 ／ 複数枚アップロード可</div>
@@ -461,7 +461,7 @@
       <div class="preview-grid" id="t-prev"></div>
     </div>
 
-    <button class="submit-btn" id="t-submit-btn" onclick="submitRequest('travel')">
+    <button class="submit-btn" id="t-submit-btn" onclick="submitRequest(&#39;travel&#39;)">
       📤 申請を提出する
     </button>
   </div>
@@ -469,7 +469,7 @@
   <!-- ========== 申請履歴 ========== -->
   <div id="page-history" class="page">
 
-    <div class="metrics" id="hist-metrics"></div>
+    <div class="metrics" id="hist-metrics"><div class="metric-card"><div class="metric-val">3</div><div class="metric-lbl">総申請数</div></div><div class="metric-card"><div class="metric-val metric-warn">3</div><div class="metric-lbl">承認待ち</div></div><div class="metric-card"><div class="metric-val metric-ok">0</div><div class="metric-lbl">承認済み</div></div><div class="metric-card"><div class="metric-val" style="font-size:15px;">¥11,436</div><div class="metric-lbl">合計金額</div></div></div>
 
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
@@ -507,8 +507,7 @@
     <summary style="cursor:pointer;color:#6b7280;">⚙ GAS接続設定</summary>
     <div style="padding:12px;text-align:left;max-width:500px;margin:0 auto;">
       <label style="display:block;font-size:11px;color:#6b7280;margin-bottom:4px;">GAS デプロイURL</label>
-      <input type="text" id="gas-url-input" placeholder="https://script.google.com/macros/s/.../exec"
-             style="width:100%;padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;">
+      <input type="text" id="gas-url-input" placeholder="https://script.google.com/macros/s/.../exec" style="width:100%;padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;">
       <button onclick="saveGasUrl()" style="margin-top:6px;padding:6px 14px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;">
         保存
       </button>
@@ -667,47 +666,63 @@ function calcTravel() {
 // ─────────────────────────────────────────────
 //  ファイルプレビュー
 // ─────────────────────────────────────────────
+// 添付ファイルの保管場所（グローバル変数）
+var attachStore = { 'e-prev': [], 't-prev': [] };
+
 function handleFiles(inp, prevId) {
   var prev = document.getElementById(prevId);
   Array.from(inp.files).forEach(function(f) {
-    var item = document.createElement('div');
-    item.className = 'preview-item';
-    if (f.type.startsWith('image/')) {
-      var r = new FileReader();
-      r.onload = function(e) {
-        // data属性に画像データを保持（承認者画面での表示に使用）
-        item.dataset.fileData = e.target.result;
-        item.dataset.fileName = f.name;
-        item.dataset.fileType = f.type;
-        item.innerHTML = '<img src="'+e.target.result+'" alt="'+f.name+'">' +
-          '<button class="remove-btn" onclick="this.parentElement.remove()">✕</button>';
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      // ① グローバル変数に画像データを保存
+      var fileObj = {
+        id:   'f_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+        name: f.name,
+        type: f.type,
+        data: ev.target.result
       };
-      r.readAsDataURL(f);
-    } else {
-      item.dataset.fileName = f.name;
-      item.dataset.fileType = f.type;
-      item.innerHTML = '<div style="font-size:24px;">📄</div>' +
-        '<div style="font-size:9px;color:#6b7280;padding:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">'+f.name+'</div>' +
-        '<button class="remove-btn" onclick="this.parentElement.remove()">✕</button>';
-    }
-    prev.appendChild(item);
+      attachStore[prevId].push(fileObj);
+
+      // ② プレビューを表示（innerHTML不使用でdatasetを保持）
+      var item = document.createElement('div');
+      item.className = 'preview-item';
+      item.dataset.fid = fileObj.id;
+
+      if (f.type.startsWith('image/')) {
+        var img = document.createElement('img');
+        img.src = ev.target.result;
+        img.alt = f.name;
+        item.appendChild(img);
+      } else {
+        var icon = document.createElement('div');
+        icon.style.cssText = 'font-size:24px;text-align:center;';
+        icon.textContent = '📄';
+        var name = document.createElement('div');
+        name.style.cssText = 'font-size:9px;color:#6b7280;padding:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;text-align:center;';
+        name.textContent = f.name;
+        item.appendChild(icon);
+        item.appendChild(name);
+      }
+
+      // ③ 削除ボタン（グローバル変数からも削除）
+      var btn = document.createElement('button');
+      btn.className = 'remove-btn';
+      btn.textContent = '✕';
+      btn.onclick = function() {
+        var fid = item.dataset.fid;
+        attachStore[prevId] = attachStore[prevId].filter(function(x){ return x.id !== fid; });
+        item.parentNode.removeChild(item);
+      };
+      item.appendChild(btn);
+      prev.appendChild(item);
+    };
+    reader.readAsDataURL(f);
   });
 }
 
-// プレビューエリアから添付データを収集する関数
+// グローバル変数から添付データを収集する（同期）
 function collectAttachments(prevId) {
-  var items = document.querySelectorAll('#' + prevId + ' .preview-item');
-  var attachments = [];
-  items.forEach(function(item) {
-    if (item.dataset.fileName) {
-      attachments.push({
-        name: item.dataset.fileName,
-        type: item.dataset.fileType || '',
-        data: item.dataset.fileData || ''
-      });
-    }
-  });
-  return attachments;
+  return attachStore[prevId] || [];
 }
 
 // ─────────────────────────────────────────────
@@ -794,63 +809,70 @@ function submitRequest(type) {
     };
   }
 
-  // 添付ファイルを収集（ローカル表示用）
-  var attachments = collectAttachments(type === 'expense' ? 'e-prev' : 't-prev');
-
-  var data = {
-    type:        type === 'expense' ? '支払申請（' + selectedCategory + '）' : '出張',
-    name:        name,
-    dept:        dept || '—',
-    subject:     subject,
-    amount:      Math.round(amount),
-    submittedAt: nowStr(),
-    extra:       extra,
-    attachments: attachments  // ローカル履歴表示用（GASには送らない）
-  };
-
-  // GAS送信用データ（添付画像データも含める）
-  var dataForGAS = {
-    type:        data.type,
-    name:        data.name,
-    dept:        data.dept,
-    subject:     data.subject,
-    amount:      data.amount,
-    submittedAt: data.submittedAt,
-    extra:       data.extra,
-    attachments: attachments  // 画像データをGASへ送信→ドライブに保存
-  };
+  var prevId = type === 'expense' ? 'e-prev' : 't-prev';
+  var attachments = collectAttachments(prevId);
 
   // ボタン非活性化（二重送信防止）
   var btn = document.getElementById(type === 'expense' ? 'e-submit-btn' : 't-submit-btn');
   btn.disabled = true;
-  btn.textContent = '送信中...';
 
+  // 画像を800px・品質0.5に圧縮してからGASへ送信
+  compressAll(attachments, function(compressed) {
+    var data = {
+      type:        type === 'expense' ? '支払申請（' + selectedCategory + '）' : '出張',
+      name:        name,
+      dept:        dept || '—',
+      subject:     subject,
+      amount:      Math.round(amount),
+      submittedAt: nowStr(),
+      extra:       extra,
+      attachments: compressed
+    };
+    btn.textContent = '📤 送信中...';
+    sendToGAS(data, btn);
+  });
+}
+
+// 全画像を圧縮する（Canvas使用）
+function compressAll(attachments, callback) {
+  if (attachments.length === 0) { callback([]); return; }
+  var results = [];
+  var done = 0;
+  attachments.forEach(function(att, i) {
+    if (att.type && att.type.startsWith('image/') && att.data) {
+      var img = new Image();
+      img.onload = function() {
+        var MAX = 800;
+        var w = img.width, h = img.height;
+        if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+        var cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        cv.getContext('2d').drawImage(img, 0, 0, w, h);
+        results[i] = { name: att.name, type: 'image/jpeg', data: cv.toDataURL('image/jpeg', 0.5) };
+        if (++done === attachments.length) callback(results);
+      };
+      img.onerror = function() {
+        results[i] = { name: att.name, type: att.type, data: '' };
+        if (++done === attachments.length) callback(results);
+      };
+      img.src = att.data;
+    } else {
+      results[i] = { name: att.name, type: att.type || '', data: '' };
+      if (++done === attachments.length) callback(results);
+    }
+  });
+}
+
+// GASへJSONP送信
+function sendToGAS(data, btn) {
   if (GAS_URL) {
-    // フォームPOST方式でGASへ送信（画像データが大きいためJSONPではなくiframe経由POST）
     var cbName = 'cb_' + Date.now();
-    // iframeを使ってPOSTし、GASからJSONPコールバックで結果を受け取る
-    var iframe = document.createElement('iframe');
-    iframe.name = cbName;
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-
-    var form = document.createElement('form');
-    form.method = 'POST';
-    form.action = GAS_URL + '?callback=' + cbName + '&action=submit';
-    form.target = cbName;
-    form.style.display = 'none';
-
-    var input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'data';
-    input.value = JSON.stringify(dataForGAS);
-    form.appendChild(input);
-    document.body.appendChild(form);
-
+    var encoded = encodeURIComponent(JSON.stringify(data));
+    var script = document.createElement('script');
+    script.src = GAS_URL + '?action=submit&data=' + encoded + '&callback=' + cbName;
     window[cbName] = function(result) {
       delete window[cbName];
-      document.body.removeChild(iframe);
-      document.body.removeChild(form);
+      try { document.body.removeChild(script); } catch(e){}
       btn.disabled = false;
       btn.textContent = '📤 申請を提出する';
       if (result.success) {
@@ -858,29 +880,26 @@ function submitRequest(type) {
         data.status = '承認待ち';
         localRequests.unshift(data);
         localStorage.setItem('myRequests', JSON.stringify(localRequests));
+        // 送信完了後にattachStoreをリセット
+        var prevId = data.type.indexOf('出張') >= 0 ? 't-prev' : 'e-prev';
+        attachStore[prevId] = [];
         showToast('✅ 申請番号 ' + result.requestId + ' で受け付けました');
         switchTab('history');
       } else {
         showToast('❌ 送信エラー: ' + result.message, 4000);
       }
     };
-
-    // タイムアウト処理（30秒）
-    var timer = setTimeout(function() {
-      if (window[cbName]) {
-        delete window[cbName];
-        try { document.body.removeChild(iframe); document.body.removeChild(form); } catch(e){}
-        btn.disabled = false;
-        btn.textContent = '📤 申請を提出する';
-        showToast('❌ タイムアウト。もう一度お試しください', 4000);
-      }
-    }, 30000);
-
-    form.submit();
+    script.onerror = function() {
+      delete window[cbName];
+      try { document.body.removeChild(script); } catch(e){}
+      btn.disabled = false;
+      btn.textContent = '📤 申請を提出する';
+      showToast('❌ 通信エラー。GAS URLを確認してください', 4000);
+    };
+    document.body.appendChild(script);
   } else {
-    // GAS未設定時はローカル保存（デモ動作）
-    var seqMap = { expense: 'SH', travel: 'SH' };
-    data.id     = seqMap[type] + '-' + String(localRequests.length + 1).padStart(4, '0');
+    // GAS未設定時はローカル保存
+    data.id = 'SH-' + String(localRequests.length + 1).padStart(4, '0');
     data.status = '承認待ち';
     localRequests.unshift(data);
     localStorage.setItem('myRequests', JSON.stringify(localRequests));
@@ -931,5 +950,6 @@ function renderHistory() {
 // 初期履歴表示
 if (localRequests.length > 0) { renderMetrics(); }
 </script>
-</body>
-</html>
+
+
+</body></html>
