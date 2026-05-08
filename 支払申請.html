@@ -794,7 +794,7 @@ function submitRequest(type) {
     };
   }
 
-  // 添付ファイルを収集
+  // 添付ファイルを収集（ローカル表示用）
   var attachments = collectAttachments(type === 'expense' ? 'e-prev' : 't-prev');
 
   var data = {
@@ -805,7 +805,19 @@ function submitRequest(type) {
     amount:      Math.round(amount),
     submittedAt: nowStr(),
     extra:       extra,
-    attachments: attachments
+    attachments: attachments  // ローカル履歴表示用（GASには送らない）
+  };
+
+  // GAS送信用データ（添付画像データも含める）
+  var dataForGAS = {
+    type:        data.type,
+    name:        data.name,
+    dept:        data.dept,
+    subject:     data.subject,
+    amount:      data.amount,
+    submittedAt: data.submittedAt,
+    extra:       data.extra,
+    attachments: attachments  // 画像データをGASへ送信→ドライブに保存
   };
 
   // ボタン非活性化（二重送信防止）
@@ -814,14 +826,31 @@ function submitRequest(type) {
   btn.textContent = '送信中...';
 
   if (GAS_URL) {
-    // JSONP方式でGASへ送信（CORSエラー回避）
+    // フォームPOST方式でGASへ送信（画像データが大きいためJSONPではなくiframe経由POST）
     var cbName = 'cb_' + Date.now();
-    var encoded = encodeURIComponent(JSON.stringify(data));
-    var script = document.createElement('script');
-    script.src = GAS_URL + '?action=submit&data=' + encoded + '&callback=' + cbName;
+    // iframeを使ってPOSTし、GASからJSONPコールバックで結果を受け取る
+    var iframe = document.createElement('iframe');
+    iframe.name = cbName;
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = GAS_URL + '?callback=' + cbName + '&action=submit';
+    form.target = cbName;
+    form.style.display = 'none';
+
+    var input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'data';
+    input.value = JSON.stringify(dataForGAS);
+    form.appendChild(input);
+    document.body.appendChild(form);
+
     window[cbName] = function(result) {
       delete window[cbName];
-      document.body.removeChild(script);
+      document.body.removeChild(iframe);
+      document.body.removeChild(form);
       btn.disabled = false;
       btn.textContent = '📤 申請を提出する';
       if (result.success) {
@@ -835,14 +864,19 @@ function submitRequest(type) {
         showToast('❌ 送信エラー: ' + result.message, 4000);
       }
     };
-    script.onerror = function() {
-      delete window[cbName];
-      document.body.removeChild(script);
-      btn.disabled = false;
-      btn.textContent = '📤 申請を提出する';
-      showToast('❌ 通信エラー。GAS URLを確認してください', 4000);
-    };
-    document.body.appendChild(script);
+
+    // タイムアウト処理（30秒）
+    var timer = setTimeout(function() {
+      if (window[cbName]) {
+        delete window[cbName];
+        try { document.body.removeChild(iframe); document.body.removeChild(form); } catch(e){}
+        btn.disabled = false;
+        btn.textContent = '📤 申請を提出する';
+        showToast('❌ タイムアウト。もう一度お試しください', 4000);
+      }
+    }, 30000);
+
+    form.submit();
   } else {
     // GAS未設定時はローカル保存（デモ動作）
     var seqMap = { expense: 'SH', travel: 'SH' };
