@@ -903,45 +903,62 @@ function sendToGAS(data, btn, prevId) {
   }
 }
 
-// ─── 領収書をGASのuploadFile経由でGoogleドライブへ保存 ───
+// ─── 領収書を圧縮してGAS経由でGoogleドライブへ保存（1枚ずつ順番に送信）───
 function uploadAttachments(attachments, requestId) {
   if (!attachments || attachments.length === 0 || !GAS_URL) return;
-  attachments.forEach(function(att, idx) {
-    if (!att.data || !att.data.startsWith('data:')) return;
-    var cbName = 'cbUp_' + Date.now() + '_' + idx;
-    var payload = {
-      action:    'uploadFile',
-      requestId: requestId,
-      fileName:  requestId + '_' + (idx+1) + '_' + att.name,
-      mimeType:  att.type || 'image/jpeg',
-      // 画像を縮小してからBase64送信（幅600px・品質0.4）
-      data:      resizeImage(att.data, 600, 0.4)
-    };
-    var encoded = encodeURIComponent(JSON.stringify(payload));
-    var script  = document.createElement('script');
-    script.src  = GAS_URL + '?action=uploadFile&data=' + encoded + '&callback=' + cbName;
-    window[cbName] = function() { delete window[cbName]; try{document.body.removeChild(script);}catch(e){} };
-    script.onerror = function() { delete window[cbName]; try{document.body.removeChild(script);}catch(e){}  };
-    document.body.appendChild(script);
-  });
+  // 1枚ずつ順番に送信（同時送信するとチャンネルが閉じる問題を回避）
+  uploadOne(attachments, requestId, 0);
 }
 
-// ─── 画像をCanvasで縮小してDataURLを返す（同期） ───
-function resizeImage(dataUrl, maxW, quality) {
-  try {
-    var img  = new Image();
-    // 同期的に読み込み（既にDataURLなので即座に完了）
-    img.src  = dataUrl;
-    var w = img.width || maxW;
-    var h = img.height || maxW;
-    if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+function uploadOne(attachments, requestId, idx) {
+  if (idx >= attachments.length) return; // 全枚送信完了
+  var att = attachments[idx];
+  if (!att || !att.data || !att.data.startsWith('data:')) {
+    uploadOne(attachments, requestId, idx + 1); // スキップして次へ
+    return;
+  }
+
+  // 画像を圧縮（幅500px・品質0.4）してからBase64文字列に変換
+  var img = new Image();
+  img.onload = function() {
+    var MAX = 500;
+    var w = img.width, h = img.height;
+    if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
     var cv = document.createElement('canvas');
     cv.width = w; cv.height = h;
     cv.getContext('2d').drawImage(img, 0, 0, w, h);
-    return cv.toDataURL('image/jpeg', quality);
-  } catch(e) {
-    return dataUrl; // 失敗時は元データをそのまま返す
-  }
+    var compressed = cv.toDataURL('image/jpeg', 0.4);
+    var base64only = compressed.split('base64,')[1]; // Base64部分のみ抽出
+
+    // GASへ送信（JSONP方式）
+    var cbName = 'cbUp_' + Date.now() + '_' + idx;
+    var payload = JSON.stringify({
+      requestId: requestId,
+      fileName:  requestId + '_' + (idx+1) + '_' + (att.name || 'receipt.jpg'),
+      mimeType:  'image/jpeg',
+      data:      base64only  // Base64文字列のみ（data:image/...は除く）
+    });
+    var encoded = encodeURIComponent(payload);
+    var script  = document.createElement('script');
+    script.src  = GAS_URL + '?action=uploadFile&data=' + encoded + '&callback=' + cbName;
+
+    window[cbName] = function(result) {
+      delete window[cbName];
+      try { document.body.removeChild(script); } catch(e) {}
+      // 次の画像を送信
+      uploadOne(attachments, requestId, idx + 1);
+    };
+    script.onerror = function() {
+      delete window[cbName];
+      try { document.body.removeChild(script); } catch(e) {}
+      uploadOne(attachments, requestId, idx + 1);
+    };
+    document.body.appendChild(script);
+  };
+  img.onerror = function() {
+    uploadOne(attachments, requestId, idx + 1);
+  };
+  img.src = att.data;
 }
 
 // compressAllは不要になったが互換のため残す
