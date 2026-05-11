@@ -899,12 +899,18 @@ function showReceiptForm(requestId, name, subject) {
   var modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
   // モーダルのHTMLを組み立て（クォートの混在を避けるためtemplateリテラル風に構築）
-  var btnUpload = document.createElement('button');
-  btnUpload.style.cssText = 'width:100%;padding:12px;background:#1a73e8;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px;';
+  // スマホでも確実に開くようaタグ（リンク）を使用
+  var btnUpload = document.createElement('a');
+  btnUpload.href = formUrl;
+  btnUpload.target = '_blank';
+  btnUpload.rel = 'noopener noreferrer';
+  btnUpload.style.cssText = 'display:block;width:100%;padding:12px;background:#1a73e8;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px;text-align:center;text-decoration:none;box-sizing:border-box;';
   btnUpload.textContent = '📎 領収書をアップロードする';
   btnUpload.onclick = function() {
-    window.open(formUrl, '_blank');
-    document.body.removeChild(modal);
+    // リンクを開いた後にモーダルを閉じる
+    setTimeout(function() { 
+      try { document.body.removeChild(modal); } catch(e) {} 
+    }, 500);
   };
 
   var btnSkip = document.createElement('button');
