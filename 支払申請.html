@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- saved from url=(0058)file:///C:/Users/SHINRAI001/Downloads/applicant_app_2.html -->
-<html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>社内申請システム</title>
 <style>
@@ -160,9 +160,9 @@
 
   <!-- タブ -->
   <div class="tabs">
-    <button class="tab active" onclick="switchTab(&#39;expense&#39;)" id="tab-expense">💴 支払申請</button>
-    <button class="tab" onclick="switchTab(&#39;travel&#39;)" id="tab-travel">✈️ 出張申請</button>
-    <button class="tab" onclick="switchTab(&#39;history&#39;)" id="tab-history">📋 申請履歴</button>
+    <button class="tab active" onclick="switchTab('expense')" id="tab-expense">💴 支払申請</button>
+    <button class="tab" onclick="switchTab('travel')" id="tab-travel">✈️ 出張申請</button>
+    <button class="tab" onclick="switchTab('history')" id="tab-history">📋 申請履歴</button>
   </div>
 
   <!-- ========== 支払申請フォーム ========== -->
@@ -195,16 +195,16 @@
     <div class="card">
       <div class="sec-label">支払区分 <span style="color:#ef4444;font-size:10px;">必須</span></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="category-btns">
-        <button type="button" class="cat-btn" data-cat="会食" onclick="selectCategory(&#39;会食&#39;)">
+        <button type="button" class="cat-btn" data-cat="会食" onclick="selectCategory('会食')">
           🍽 会食
         </button>
-        <button type="button" class="cat-btn" data-cat="贈答品" onclick="selectCategory(&#39;贈答品&#39;)">
+        <button type="button" class="cat-btn" data-cat="贈答品" onclick="selectCategory('贈答品')">
           🎁 贈答品
         </button>
-        <button type="button" class="cat-btn" data-cat="事務用品・消耗品" onclick="selectCategory(&#39;事務用品・消耗品&#39;)">
+        <button type="button" class="cat-btn" data-cat="事務用品・消耗品" onclick="selectCategory('事務用品・消耗品')">
           🖊 事務用品・消耗品
         </button>
-        <button type="button" class="cat-btn" data-cat="その他" onclick="selectCategory(&#39;その他&#39;)">
+        <button type="button" class="cat-btn" data-cat="その他" onclick="selectCategory('その他')">
           📝 その他
         </button>
       </div>
@@ -358,8 +358,8 @@
 
       <div class="card">
         <div class="sec-label">レシート・領収書の添付</div>
-        <input type="file" id="e-file" style="display:none" accept="image/*,application/pdf" multiple="" onchange="handleFiles(this,&#39;e-prev&#39;)">
-        <div class="upload-zone" onclick="document.getElementById(&#39;e-file&#39;).click()">
+        <input type="file" id="e-file" style="display:none" accept="image/*,application/pdf" multiple onchange="handleFiles(this,'e-prev')">
+        <div class="upload-zone" onclick="document.getElementById('e-file').click()">
           <div class="upload-icon">📎</div>
           <div class="upload-text">タップしてファイルを選択</div>
           <div class="upload-hint">JPEG・PNG・PDF 対応 ／ 複数枚アップロード可</div>
@@ -367,7 +367,7 @@
         <div class="preview-grid" id="e-prev"></div>
       </div>
 
-      <button class="submit-btn" id="e-submit-btn" onclick="submitRequest(&#39;expense&#39;)">
+      <button class="submit-btn" id="e-submit-btn" onclick="submitRequest('expense')">
         📤 申請を提出する
       </button>
 
@@ -452,8 +452,8 @@
 
     <div class="card">
       <div class="sec-label">添付書類（任意）</div>
-      <input type="file" id="t-file" style="display:none" accept="image/*,application/pdf" multiple="" onchange="handleFiles(this,&#39;t-prev&#39;)">
-      <div class="upload-zone" onclick="document.getElementById(&#39;t-file&#39;).click()">
+      <input type="file" id="t-file" style="display:none" accept="image/*,application/pdf" multiple onchange="handleFiles(this,'t-prev')">
+      <div class="upload-zone" onclick="document.getElementById('t-file').click()">
         <div class="upload-icon">📎</div>
         <div class="upload-text">タップしてファイルを選択</div>
         <div class="upload-hint">JPEG・PNG・PDF 対応 ／ 複数枚アップロード可</div>
@@ -461,7 +461,7 @@
       <div class="preview-grid" id="t-prev"></div>
     </div>
 
-    <button class="submit-btn" id="t-submit-btn" onclick="submitRequest(&#39;travel&#39;)">
+    <button class="submit-btn" id="t-submit-btn" onclick="submitRequest('travel')">
       📤 申請を提出する
     </button>
   </div>
@@ -469,7 +469,7 @@
   <!-- ========== 申請履歴 ========== -->
   <div id="page-history" class="page">
 
-    <div class="metrics" id="hist-metrics"><div class="metric-card"><div class="metric-val">3</div><div class="metric-lbl">総申請数</div></div><div class="metric-card"><div class="metric-val metric-warn">3</div><div class="metric-lbl">承認待ち</div></div><div class="metric-card"><div class="metric-val metric-ok">0</div><div class="metric-lbl">承認済み</div></div><div class="metric-card"><div class="metric-val" style="font-size:15px;">¥11,436</div><div class="metric-lbl">合計金額</div></div></div>
+    <div class="metrics" id="hist-metrics"></div>
 
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
@@ -507,7 +507,8 @@
     <summary style="cursor:pointer;color:#6b7280;">⚙ GAS接続設定</summary>
     <div style="padding:12px;text-align:left;max-width:500px;margin:0 auto;">
       <label style="display:block;font-size:11px;color:#6b7280;margin-bottom:4px;">GAS デプロイURL</label>
-      <input type="text" id="gas-url-input" placeholder="https://script.google.com/macros/s/.../exec" style="width:100%;padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;">
+      <input type="text" id="gas-url-input" placeholder="https://script.google.com/macros/s/.../exec"
+             style="width:100%;padding:7px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;">
       <button onclick="saveGasUrl()" style="margin-top:6px;padding:6px 14px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;">
         保存
       </button>
@@ -1043,6 +1044,5 @@ function renderHistory() {
 // 初期履歴表示
 if (localRequests.length > 0) { renderMetrics(); }
 </script>
-
-
-</body></html>
+</body>
+</html>
