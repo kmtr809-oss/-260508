@@ -415,20 +415,35 @@ function openDetail(id) {
     return '<div class="dp-field"><div class="dp-label">'+f[0]+'</div><div class="dp-value">'+f[1]+'</div></div>';
   }).join('');
 
-  // 添付ファイル（領収書）の表示
+  // 領収書リンクの表示（Googleフォーム連携 or GASドライブ保存）
   var attachArea = document.getElementById('dp-attach');
-  if (r.attachments && r.attachments.length > 0) {
-    var imgs = r.attachments.map(function(a) {
-      if (a.type && a.type.startsWith('image/')) {
-        return '<div class="attach-item"><img src="'+a.data+'" alt="'+a.name+'" style="width:100%;height:100%;object-fit:cover;border-radius:6px;"></div>';
-      } else {
-        return '<div class="attach-item" style="flex-direction:column;font-size:11px;color:#64748b;padding:6px;text-align:center;"><div style="font-size:22px;">📄</div><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px;">'+a.name+'</div></div>';
-      }
+  var driveLinks = r.driveLinks || '';
+  var attachCount = r.attachCount || 0;
+
+  if (driveLinks) {
+    // GASで保存したドライブリンクがある場合
+    var links = driveLinks.split('\n').filter(function(l){ return l.trim(); });
+    var linkHtml = links.map(function(url, i) {
+      return '<a href="'+url+'" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:8px 12px;font-size:12px;color:#1d4ed8;text-decoration:none;margin:4px;">'+
+        '🖼 領収書 '+(i+1)+'枚目を開く</a>';
     }).join('');
-    attachArea.innerHTML = '<div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">添付ファイル（領収書等）</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;">'+imgs+'</div>';
+    attachArea.innerHTML =
+      '<div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">領収書（Googleドライブ）</div>' +
+      linkHtml;
+    attachArea.style.display = 'block';
+  } else if (attachCount > 0) {
+    // 添付枚数のみ記録されている場合→フォームシートを案内
+    attachArea.innerHTML =
+      '<div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">領収書</div>' +
+      '<div style="font-size:12px;color:#374151;background:#f8fafc;border-radius:8px;padding:10px 12px;">' +
+      '📎 添付あり（'+attachCount+'枚）<br>' +
+      '<a href="https://docs.google.com/spreadsheets/d/1ZkcNcm4s6GOJsHEfNhvE5wVjwrCYy7AyBJsv7ZgCSX0/edit" target="_blank" ' +
+      'style="color:#1d4ed8;font-size:12px;">📊 スプレッドシートの「フォームの回答」シートで確認</a>' +
+      '</div>';
     attachArea.style.display = 'block';
   } else {
-    attachArea.innerHTML = '<div style="font-size:12px;color:#94a3b8;padding:8px 0;">添付ファイルなし</div>';
+    attachArea.innerHTML =
+      '<div style="font-size:12px;color:#94a3b8;padding:8px 0;">添付ファイルなし</div>';
     attachArea.style.display = 'block';
   }
 
