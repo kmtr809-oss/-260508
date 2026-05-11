@@ -907,12 +907,11 @@ var RECEIPT_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfRkaKxam23cMTY
 
 function showReceiptForm(requestId, name, subject) {
   // Googleフォームに申請情報を自動入力するURL生成
-  // entry.IDはフォームの各質問のID（後で設定）
   var formUrl = RECEIPT_FORM_URL +
     '?usp=pp_url' +
-    '&entry.申請番号=' + encodeURIComponent(requestId) +
-    '&entry.申請者名=' + encodeURIComponent(name) +
-    '&entry.件名='   + encodeURIComponent(subject);
+    '&entry.925213672='  + encodeURIComponent(requestId) +
+    '&entry.1995290945=' + encodeURIComponent(name) +
+    '&entry.1654949596=' + encodeURIComponent(subject);
 
   // 申請完了モーダルを表示
   var modal = document.createElement('div');
@@ -922,7 +921,7 @@ function showReceiptForm(requestId, name, subject) {
   btnUpload.style.cssText = 'width:100%;padding:12px;background:#1a73e8;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px;';
   btnUpload.textContent = '📎 領収書をアップロードする';
   btnUpload.onclick = function() {
-    window.open(RECEIPT_FORM_URL, '_blank');
+    window.open(formUrl, '_blank');
     document.body.removeChild(modal);
   };
 
