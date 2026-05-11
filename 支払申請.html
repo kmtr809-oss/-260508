@@ -356,15 +356,8 @@
         </div>
       </div>
 
-      <div class="card">
-        <div class="sec-label">レシート・領収書の添付</div>
-        <input type="file" id="e-file" style="display:none" accept="image/*,application/pdf" multiple onchange="handleFiles(this,'e-prev')">
-        <div class="upload-zone" onclick="document.getElementById('e-file').click()">
-          <div class="upload-icon">📎</div>
-          <div class="upload-text">タップしてファイルを選択</div>
-          <div class="upload-hint">JPEG・PNG・PDF 対応 ／ 複数枚アップロード可</div>
-        </div>
-        <div class="preview-grid" id="e-prev"></div>
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#1d4ed8;">
+        📎 領収書・レシートは申請後にGoogleフォームでアップロードしてください
       </div>
 
       <button class="submit-btn" id="e-submit-btn" onclick="submitRequest('expense')">
@@ -450,15 +443,8 @@
       <textarea id="t-note" placeholder="宿泊先ホテル名・同行者・その他連絡事項など"></textarea>
     </div>
 
-    <div class="card">
-      <div class="sec-label">添付書類（任意）</div>
-      <input type="file" id="t-file" style="display:none" accept="image/*,application/pdf" multiple onchange="handleFiles(this,'t-prev')">
-      <div class="upload-zone" onclick="document.getElementById('t-file').click()">
-        <div class="upload-icon">📎</div>
-        <div class="upload-text">タップしてファイルを選択</div>
-        <div class="upload-hint">JPEG・PNG・PDF 対応 ／ 複数枚アップロード可</div>
-      </div>
-      <div class="preview-grid" id="t-prev"></div>
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#1d4ed8;">
+      📎 領収書・添付書類は申請後にGoogleフォームでアップロードしてください
     </div>
 
     <button class="submit-btn" id="t-submit-btn" onclick="submitRequest('travel')">
@@ -667,7 +653,7 @@ function calcTravel() {
 // ─────────────────────────────────────────────
 //  ファイルプレビュー
 // ─────────────────────────────────────────────
-// 添付ファイルの保管場所（グローバル変数）
+// （アップロード機能はGoogleフォームに移行済み）
 var attachStore = { 'e-prev': [], 't-prev': [] };
 
 function handleFiles(inp, prevId) {
@@ -810,28 +796,24 @@ function submitRequest(type) {
     };
   }
 
-  var prevId = type === 'expense' ? 'e-prev' : 't-prev';
-  var attachments = collectAttachments(prevId);
-
   // ボタン非活性化（二重送信防止）
   var btn = document.getElementById(type === 'expense' ? 'e-submit-btn' : 't-submit-btn');
   btn.disabled = true;
+  btn.textContent = '📤 送信中...';
 
-  // 画像を800px・品質0.5に圧縮してからGASへ送信
-  compressAll(attachments, function(compressed) {
-    var data = {
-      type:        type === 'expense' ? '支払申請（' + selectedCategory + '）' : '出張',
-      name:        name,
-      dept:        dept || '—',
-      subject:     subject,
-      amount:      Math.round(amount),
-      submittedAt: nowStr(),
-      extra:       extra,
-      attachments: compressed
-    };
-    btn.textContent = '📤 送信中...';
-    sendToGAS(data, btn, prevId);
-  });
+  var data = {
+    type:        type === 'expense' ? '支払申請（' + selectedCategory + '）' : '出張',
+    name:        name,
+    dept:        dept || '—',
+    subject:     subject,
+    amount:      Math.round(amount),
+    submittedAt: nowStr(),
+    extra:       extra,
+    attachments: [],
+    attachCount: 0
+  };
+
+  sendToGAS(data, btn, type === 'expense' ? 'e-prev' : 't-prev');
 }
 
 // ─── GASへJSONP送信（画像なし・申請データのみ）───
