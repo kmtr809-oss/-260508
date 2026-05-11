@@ -902,16 +902,8 @@ function showReceiptForm(requestId, name, subject) {
   // スマホでも確実に開くようaタグ（リンク）を使用
   var btnUpload = document.createElement('a');
   btnUpload.href = formUrl;
-  btnUpload.target = '_blank';
-  btnUpload.rel = 'noopener noreferrer';
   btnUpload.style.cssText = 'display:block;width:100%;padding:12px;background:#1a73e8;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px;text-align:center;text-decoration:none;box-sizing:border-box;';
   btnUpload.textContent = '📎 領収書をアップロードする';
-  btnUpload.onclick = function() {
-    // リンクを開いた後にモーダルを閉じる
-    setTimeout(function() { 
-      try { document.body.removeChild(modal); } catch(e) {} 
-    }, 500);
-  };
 
   var btnSkip = document.createElement('button');
   btnSkip.style.cssText = 'width:100%;padding:10px;background:#f3f4f6;color:#6b7280;border:none;border-radius:10px;font-size:13px;cursor:pointer;';
